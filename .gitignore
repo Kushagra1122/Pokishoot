@@ -1,0 +1,71 @@
+# Node
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Logs
+logs/
+*.log
+
+# dotenv files
+.env
+.env.*
+.env.local
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Build outputs
+dist/
+build/
+out/
+.public/
+.public/*
+
+# Vite
+.vite/
+
+# Coverage
+coverage/
+coverage-report/
+
+# Hardhat / Solidity / web3 artifacts
+**/artifacts/
+**/cache/
+web3/artifacts/
+web3/cache/
+web3/.openzeppelin/
+web3/build/
+cache/solidity-files-cache.json
+
+# Misc
+*.sqlite
+*.sqlite3
+*.log
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.idea
+
+# Ignore local env for editors
+*.local
+
+# Optional: lockfiles typically tracked, but ignore if you prefer
+# pnpm-lock.yaml
+# yarn.lock
+
+# Prevent committing large media from public (if any large files accidentally added)
+public/**/*.png
+public/**/*.jpg
+public/**/*.jpeg
+public/**/*.gif
+public/**/*.mp4
