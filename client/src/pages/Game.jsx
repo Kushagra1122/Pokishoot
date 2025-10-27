@@ -82,27 +82,34 @@ const Game = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-br from-blue-900 via-purple-800 to-blue-900 text-yellow-400 overflow-hidden flex flex-col">
+    <div className="relative min-h-screen bg-black overflow-hidden flex flex-col" style={{
+      backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                        linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+      backgroundSize: '32px 32px',
+      backgroundColor: '#000'
+    }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 z-20 shrink-0 bg-black/20 backdrop-blur-sm border-b border-yellow-400/30">
+      <div className="flex items-center justify-between p-4 z-20 shrink-0 border-b-2 border-yellow-400 bg-black/90">
         <div className="flex items-center gap-4">
-          <div className="text-xl md:text-2xl font-bold">PokéWars</div>
-          <div className="text-sm md:text-base text-yellow-200">
-            {gameState?.settings?.gameType === 'friendly'
-              ? 'Friendly'
-              : 'Ranked'}
+          <div className="text-xl md:text-2xl font-black" style={{ fontFamily: 'monospace', color: '#fbbf24', textShadow: '2px 2px 0 #dc2626' }}>POKE SHOOT</div>
+          <div className="px-3 py-1 border-2 border-blue-500 bg-blue-900/50" style={{ fontFamily: 'monospace' }}>
+            <span className="text-blue-400 font-bold text-sm">
+              {gameState?.settings?.gameType === 'friendly' ? 'FRIENDLY' : 'RANKED'}
+            </span>
           </div>
         </div>
 
-        <div className="text-sm md:text-base text-yellow-300 font-bold">
-          {user?.name}
+        <div className="px-3 py-1 border-2 border-yellow-400 bg-yellow-900/20" style={{ fontFamily: 'monospace' }}>
+          <span className="text-yellow-400 font-bold">
+            {user?.name?.toUpperCase() || 'TRAINER'}
+          </span>
         </div>
       </div>
 
       {/* Floating panels: Chat, Timer, Leaderboard */}
       <div className="absolute top-20 left-4 right-4 flex flex-wrap justify-between items-start gap-4 z-10">
         <ChatBox
-          className="w-full md:w-1/3 max-h-[70vh] overflow-y-auto bg-black/20 p-3 rounded-lg shadow-md"
+          className="w-full md:w-1/3 max-h-[70vh] overflow-y-auto bg-gray-900 border-2 border-gray-700 p-3"
           messages={messages}
           setMessages={setMessages}
           socket={socket}
@@ -110,11 +117,11 @@ const Game = () => {
           gameCode={code}
         />
         <Timer
-          className="text-2xl font-bold text-center bg-black/30 p-3 rounded-lg shadow-md"
+          className="text-2xl font-bold text-center bg-gray-900 border-2 border-yellow-400 p-3"
           timeLeft={timeLeft}
         />
         <Leaderboard
-          className="w-full md:w-1/4 max-h-[70vh] overflow-y-auto bg-black/20 p-3 rounded-lg shadow-md"
+          className="w-full md:w-1/4 max-h-[70vh] overflow-y-auto bg-gray-900 border-2 border-green-500 p-3"
           gameState={gameState}
           user={user}
           socket={socket}
@@ -123,7 +130,9 @@ const Game = () => {
 
       {/* Main Game Area - Fixed to take remaining space */}
       <div className="flex-1 justify-center pt-28 px-4 pb-4 min-h-0">
-        <div className=" h-full mx-20 border-2 border-yellow-400 rounded-lg bg-black/20">
+        <div className="h-full mx-20 border-4 border-yellow-400 bg-black" style={{
+          boxShadow: '0 0 20px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5)'
+        }}>
           <MainGame gameState={gameState} user={user} socket={socket} />
         </div>
       </div>

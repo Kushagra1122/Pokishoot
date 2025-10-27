@@ -36,67 +36,67 @@ const ChatBox = ({ messages, setMessages, socket, user, gameCode }) => {
   };
 
   return (
-    <div className={`bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl flex flex-col shadow-2xl transition-all duration-300 ${
+    <div className={`bg-gray-900 border-4 border-yellow-400 flex flex-col transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-80'
-    }`}>
+    }`} style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
       
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors duration-300 rounded-t-2xl"
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800 transition-colors duration-300 bg-gray-950"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-amber-400" />
-            <h2 className="font-bold text-white text-lg">Game Chat</h2>
+            <MessageCircle className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+            <h2 className="font-black text-white text-lg uppercase">Chat</h2>
           </div>
         )}
-        <div className={`w-8 h-8 bg-amber-400/20 border border-amber-400/30 rounded-lg flex items-center justify-center transition-transform duration-300 ${
+        <div className={`w-10 h-10 bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center ${
           isCollapsed ? 'rotate-180' : ''
-        }`}>
-          <span className="text-amber-400 text-sm">▲</span>
+        }`} style={{ clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)' }}>
+          <span className="text-black text-lg font-black">▲</span>
         </div>
       </div>
 
       {!isCollapsed && (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 p-4 max-h-80 scrollbar-thin scrollbar-thumb-amber-400/30 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto space-y-2 p-4 max-h-80 bg-gray-950">
             {messages.length === 0 ? (
               <div className="text-center py-8">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">No messages yet</p>
-                <p className="text-gray-500 text-xs mt-1">Start the conversation!</p>
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" strokeWidth={3} />
+                <p className="text-gray-400 text-sm font-black uppercase" style={{ fontFamily: 'monospace' }}>NO MESSAGES</p>
+                <p className="text-gray-500 text-xs mt-1 font-black" style={{ fontFamily: 'monospace' }}>START CHATTING!</p>
               </div>
             ) : (
               messages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`rounded-xl p-3 transition-all duration-300 ${
+                  className={`p-3 border-2 ${
                     msg.type === 'system'
-                      ? 'bg-purple-500/20 border border-purple-500/30'
+                      ? 'border-purple-400 bg-purple-500/10'
                       : msg.self
-                      ? 'bg-emerald-500/20 border border-emerald-500/30 ml-4'
-                      : 'bg-blue-500/20 border border-blue-500/30 mr-4'
+                      ? 'border-emerald-400 bg-emerald-500/10 ml-4'
+                      : 'border-blue-400 bg-blue-500/10 mr-4'
                   }`}
                 >
                   {msg.type !== 'system' && (
                     <div className={`flex items-center justify-between mb-2 ${msg.self ? 'flex-row-reverse' : ''}`}>
-                      <span className={`text-xs font-semibold ${
+                      <span className={`text-xs font-black uppercase ${
                         msg.self ? 'text-emerald-400' : 'text-blue-400'
-                      }`}>
-                        {msg.self ? 'You' : msg.playerName}
+                      }`} style={{ fontFamily: 'monospace' }}>
+                        {msg.self ? 'YOU' : msg.playerName?.toUpperCase()}
                       </span>
-                      <span className="text-gray-400 text-xs">{formatMessageTime(msg.timestamp)}</span>
+                      <span className="text-gray-500 text-xs font-black" style={{ fontFamily: 'monospace' }}>{formatMessageTime(msg.timestamp)}</span>
                     </div>
                   )}
-                  <div className={`text-sm ${
+                  <div className={`text-sm font-bold ${
                     msg.type === 'system' 
                       ? 'text-purple-300 italic text-center' 
                       : msg.self 
                       ? 'text-emerald-300' 
                       : 'text-blue-300'
-                  }`}>
+                  }`} style={{ fontFamily: 'monospace' }}>
                     {msg.text}
                   </div>
                 </div>
@@ -106,12 +106,13 @@ const ChatBox = ({ messages, setMessages, socket, user, gameCode }) => {
           </div>
 
           {/* Input */}
-          <form onSubmit={sendMessage} className="p-4 border-t border-white/10">
+          <form onSubmit={sendMessage} className="p-4 border-t-4 border-gray-700 bg-gray-900">
             <div className="flex gap-2">
               <input
                 type="text"
-                className="flex-1 px-3 py-2 text-sm text-white bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent placeholder-gray-400 transition-all duration-300"
-                placeholder="Type your message..."
+                className="flex-1 px-3 py-2 text-sm text-white bg-gray-950 border-2 border-gray-700 focus:outline-none focus:border-yellow-400 placeholder-gray-500 transition-all duration-300"
+                style={{ fontFamily: 'monospace', fontWeight: 'bold' }}
+                placeholder="TYPE MESSAGE..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 maxLength={500}
@@ -119,9 +120,10 @@ const ChatBox = ({ messages, setMessages, socket, user, gameCode }) => {
               <button
                 type="submit"
                 disabled={!newMessage.trim()}
-                className="p-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 rounded-xl hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+                className="p-2 bg-yellow-400 border-2 border-yellow-600 hover:bg-yellow-300 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ boxShadow: '0 4px 0 #d97706' }}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 text-black" strokeWidth={3} />
               </button>
             </div>
           </form>

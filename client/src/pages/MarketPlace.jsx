@@ -237,11 +237,26 @@ const MarketPlace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-24 h-24 bg-amber-400 rounded-full blur-2xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-20 h-20 bg-blue-400 rounded-full blur-2xl animate-pulse delay-75"></div>
+    <div className="min-h-screen bg-black relative overflow-hidden" style={{
+      backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                        linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+      backgroundSize: '32px 32px',
+      backgroundColor: '#000'
+    }}>
+      {/* Subtle Animated Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400" style={{
+          clipPath: 'polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute bottom-20 right-20 w-16 h-16 bg-blue-400" style={{
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute top-1/3 right-1/3 w-24 h-24 bg-purple-400" style={{
+          clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+          filter: 'blur(20px)'
+        }}></div>
       </div>
 
       {/* Header */}
@@ -249,10 +264,11 @@ const MarketPlace = () => {
         <div className="flex justify-between items-center p-6">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 border-2 border-yellow-400 text-yellow-400 hover:border-green-400 transition-all duration-300"
+            style={{ fontFamily: 'monospace' }}
           >
             <ArrowLeft className="w-5 h-5" />
-            Back to Dashboard
+            <span className="font-bold">BACK TO DASHBOARD</span>
           </button>
         </div>
       </div>
@@ -261,14 +277,21 @@ const MarketPlace = () => {
       <div className="relative z-10 px-6 py-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-2xl">
-            <ShoppingCart className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 bg-green-500 mx-auto mb-6 flex items-center justify-center border-4 border-green-700" style={{
+            clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+            boxShadow: '0 8px 0 #166534'
+          }}>
+            <ShoppingCart className="w-10 h-10 text-black" strokeWidth={3} />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-4">
-            Pokémon <span className="bg-gradient-to-r from-emerald-500 to-green-600 bg-clip-text text-transparent">Marketplace</span>
+          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight" style={{
+            fontFamily: 'monospace',
+            color: '#fbbf24',
+            textShadow: '3px 3px 0 #dc2626, 5px 5px 0 #000'
+          }}>
+            MARKETPLACE
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Buy, sell, and trade Pokémon to build your ultimate battle team
+          <p className="text-xl text-green-400 max-w-2xl mx-auto" style={{ fontFamily: 'monospace' }}>
+            &gt; TRADE.EXE | BUY • SELL • UPGRADE
           </p>
         </div>
 
@@ -276,48 +299,51 @@ const MarketPlace = () => {
         <div className="flex justify-center gap-4 mb-8 flex-wrap">
           <button
             onClick={() => setActiveTab('buy')}
-            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all transform ${
+            className={`flex items-center gap-3 px-6 py-3 font-bold transition-all transform ${
               activeTab === 'buy'
-                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white scale-105 shadow-2xl shadow-emerald-500/25'
-                : 'bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-200 hover:bg-white/20'
+                ? 'bg-green-500 text-black border-4 border-green-700 scale-105'
+                : 'bg-gray-900 border-2 border-gray-700 text-yellow-400 hover:border-yellow-400'
             }`}
+            style={{ fontFamily: 'monospace', boxShadow: activeTab === 'buy' ? '0 8px 0 #166534' : 'none' }}
           >
             <TrendingDown className="w-5 h-5" />
-            Buy Pokémon
+            BUY POKEMON
           </button>
 
           {hasUserPokemon && (
             <>
               <button
                 onClick={() => setActiveTab('sell')}
-                className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all transform ${
+                className={`flex items-center gap-3 px-6 py-3 font-bold transition-all transform ${
                   activeTab === 'sell'
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white scale-105 shadow-2xl shadow-blue-500/25'
-                    : 'bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-200 hover:bg-white/20'
+                    ? 'bg-blue-500 text-white border-4 border-blue-700 scale-105'
+                    : 'bg-gray-900 border-2 border-gray-700 text-yellow-400 hover:border-yellow-400'
                 }`}
+                style={{ fontFamily: 'monospace', boxShadow: activeTab === 'sell' ? '0 8px 0 #1e40af' : 'none' }}
               >
                 <TrendingUp className="w-5 h-5" />
-                Your Collection
+                YOUR COLLECTION
               </button>
 
               <button
                 onClick={() => setActiveTab('marketplace')}
-                className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all transform ${
+                className={`flex items-center gap-3 px-6 py-3 font-bold transition-all transform ${
                   activeTab === 'marketplace'
-                    ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white scale-105 shadow-2xl shadow-pink-500/25'
-                    : 'bg-white/10 backdrop-blur-sm border border-white/20 text-yellow-200 hover:bg-white/20'
+                    ? 'bg-rose-500 text-white border-4 border-rose-700 scale-105'
+                    : 'bg-gray-900 border-2 border-gray-700 text-yellow-400 hover:border-yellow-400'
                 }`}
+                style={{ fontFamily: 'monospace', boxShadow: activeTab === 'marketplace' ? '0 8px 0 #991b1b' : 'none' }}
               >
                 <Coins className="w-5 h-5" />
-                Marketplace Listings
+                MARKETPLACE
               </button>
             </>
           )}
 
           {!hasUserPokemon && (
-            <div className="px-8 py-4 bg-white/5 backdrop-blur-sm border border-white/20 text-gray-400 rounded-2xl font-bold flex items-center gap-3">
+            <div className="px-6 py-3 bg-gray-900 border-2 border-gray-700 text-gray-500 font-bold flex items-center gap-3" style={{ fontFamily: 'monospace' }}>
               <TrendingUp className="w-5 h-5" />
-              <span>Get Pokémon to Sell</span>
+              <span>GET POKEMON TO SELL</span>
             </div>
           )}
         </div>
@@ -325,16 +351,17 @@ const MarketPlace = () => {
         {/* Filters */}
         {activeTab === 'buy' && (
           <div className="flex justify-center mb-8">
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3">
-              <span className="text-white font-semibold">Sort by:</span>
+            <div className="flex items-center gap-4 bg-gray-900 border-2 border-gray-700 px-6 py-3" style={{ fontFamily: 'monospace' }}>
+              <span className="text-yellow-400 font-bold">SORT BY:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="px-4 py-2 bg-black border-2 border-yellow-400 text-yellow-400 font-bold focus:outline-none focus:border-green-400"
+                style={{ fontFamily: 'monospace' }}
               >
-                <option value="name">Name</option>
-                <option value="price">Price</option>
-                <option value="type">Type</option>
+                <option value="name">NAME</option>
+                <option value="price">PRICE</option>
+                <option value="type">TYPE</option>
               </select>
             </div>
           </div>
@@ -343,8 +370,8 @@ const MarketPlace = () => {
         {/* Success Message */}
         {success && (
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl text-green-400 text-center max-w-md">
-              {success}
+            <div className="p-4 bg-green-900 border-4 border-green-500 text-green-400 text-center max-w-md font-bold" style={{ fontFamily: 'monospace' }}>
+              ✓ {success}
             </div>
           </div>
         )}
@@ -352,8 +379,8 @@ const MarketPlace = () => {
         {/* Error Message */}
         {error && (
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-rose-500/20 border border-rose-500/30 rounded-2xl text-rose-400 text-center animate-pulse max-w-md">
-              {error}
+            <div className="p-4 bg-red-900 border-4 border-red-500 text-red-400 text-center max-w-md font-bold animate-pulse" style={{ fontFamily: 'monospace' }}>
+              ⚠ {error}
             </div>
           </div>
         )}
@@ -361,8 +388,8 @@ const MarketPlace = () => {
         {/* Content */}
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <div className="text-xl text-amber-400 font-bold">Loading Marketplace...</div>
+            <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent animate-spin mb-4"></div>
+            <div className="text-xl text-yellow-400 font-bold" style={{ fontFamily: 'monospace' }}>LOADING...</div>
           </div>
         ) : (
           <div>
@@ -697,27 +724,27 @@ const MarketPlace = () => {
 
       {/* Sell Modal */}
       {showSellModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 max-w-md w-full border border-white/20">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 p-8 max-w-md w-full border-4 border-blue-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">List for Sale</h2>
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'monospace' }}>LIST FOR SALE</h2>
               <button
                 onClick={() => {
                   setShowSellModal(false);
                   setSelectedPokemonToSell(null);
                   setSellPrice('');
                 }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                className="p-2 hover:bg-red-600 border-2 border-red-500 transition-all"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-white" strokeWidth={3} />
               </button>
             </div>
 
             {selectedPokemonToSell && (
-              <div className="bg-white/10 rounded-2xl p-6 mb-6">
+              <div className="bg-black border-2 border-gray-700 p-6 mb-6">
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-20 h-20"
+                    className="w-20 h-20 border-2 border-yellow-400"
                     style={{
                       backgroundImage: `url(${selectedPokemonToSell.sprite || '/characters/noChar.png'})`,
                       backgroundPosition: '-5px 0px',
@@ -727,26 +754,27 @@ const MarketPlace = () => {
                     }}
                   />
                   <div>
-                    <h3 className="text-lg font-bold text-white">{selectedPokemonToSell.name}</h3>
-                    <p className="text-sm text-gray-300">Level {selectedPokemonToSell.userLevel || 1}</p>
-                    <p className="text-sm text-gray-400 capitalize">{selectedPokemonToSell.type}</p>
+                    <h3 className="text-lg font-bold text-yellow-400" style={{ fontFamily: 'monospace' }}>{selectedPokemonToSell.name.toUpperCase()}</h3>
+                    <p className="text-sm text-green-400 font-bold" style={{ fontFamily: 'monospace' }}>LEVEL {selectedPokemonToSell.userLevel || 1}</p>
+                    <p className="text-sm text-white capitalize font-bold" style={{ fontFamily: 'monospace' }}>{selectedPokemonToSell.type.toUpperCase()}</p>
                   </div>
                 </div>
               </div>
             )}
 
             <div className="mb-6">
-              <label className="block text-white font-semibold mb-2">Price (ETH)</label>
+              <label className="block text-yellow-400 font-bold mb-2" style={{ fontFamily: 'monospace' }}>PRICE (ETH)</label>
               <input
                 type="number"
                 step="0.01"
                 min="0.01"
                 value={sellPrice}
                 onChange={(e) => setSellPrice(e.target.value)}
-                placeholder="Enter price in ETH"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0.01"
+                className="w-full px-4 py-3 bg-black border-2 border-yellow-400 text-yellow-400 placeholder-gray-600 focus:outline-none focus:border-green-400 font-bold"
+                style={{ fontFamily: 'monospace' }}
               />
-              <p className="text-xs text-gray-400 mt-2">Minimum price: 0.01 ETH</p>
+              <p className="text-xs text-gray-400 mt-2 font-bold" style={{ fontFamily: 'monospace' }}>MIN: 0.01 ETH</p>
             </div>
 
             <div className="flex gap-3">
@@ -756,16 +784,18 @@ const MarketPlace = () => {
                   setSelectedPokemonToSell(null);
                   setSellPrice('');
                 }}
-                className="flex-1 py-3 px-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all"
+                className="flex-1 py-3 px-4 bg-gray-900 border-2 border-gray-700 text-white font-bold hover:border-red-400 transition-all"
+                style={{ fontFamily: 'monospace' }}
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleListForSale}
                 disabled={selling || !sellPrice}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-blue-500 text-white font-bold hover:bg-blue-400 border-2 border-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ fontFamily: 'monospace', boxShadow: '0 4px 0 #1e40af' }}
               >
-                {selling ? 'Listing...' : 'List for Sale'}
+                {selling ? 'LISTING...' : 'LIST FOR SALE'}
               </button>
             </div>
           </div>
@@ -774,26 +804,26 @@ const MarketPlace = () => {
 
       {/* Upgrade Modal */}
       {showUpgradeModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 max-w-md w-full border border-white/20">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 p-8 max-w-md w-full border-4 border-amber-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Upgrade Level</h2>
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'monospace' }}>UPGRADE LEVEL</h2>
               <button
                 onClick={() => {
                   setShowUpgradeModal(false);
                   setSelectedPokemonToUpgrade(null);
                 }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                className="p-2 hover:bg-red-600 border-2 border-red-500 transition-all"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-white" strokeWidth={3} />
               </button>
             </div>
 
             {selectedPokemonToUpgrade && (
-              <div className="bg-white/10 rounded-2xl p-6 mb-6">
+              <div className="bg-black border-2 border-gray-700 p-6 mb-6">
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-20 h-20"
+                    className="w-20 h-20 border-2 border-amber-400"
                     style={{
                       backgroundImage: `url(${selectedPokemonToUpgrade.sprite || '/characters/noChar.png'})`,
                       backgroundPosition: '-5px 0px',
@@ -803,19 +833,19 @@ const MarketPlace = () => {
                     }}
                   />
                   <div>
-                    <h3 className="text-lg font-bold text-white">{selectedPokemonToUpgrade.name}</h3>
-                    <p className="text-sm text-gray-300">
-                      Level {selectedPokemonToUpgrade.userLevel || 1} → {(selectedPokemonToUpgrade.userLevel || 1) + 1}
+                    <h3 className="text-lg font-bold text-yellow-400" style={{ fontFamily: 'monospace' }}>{selectedPokemonToUpgrade.name.toUpperCase()}</h3>
+                    <p className="text-sm text-green-400 font-bold" style={{ fontFamily: 'monospace' }}>
+                      LEVEL {selectedPokemonToUpgrade.userLevel || 1} → {(selectedPokemonToUpgrade.userLevel || 1) + 1}
                     </p>
-                    <p className="text-sm text-amber-400 font-semibold mt-2">Cost: 0.10 ETH</p>
+                    <p className="text-sm text-amber-400 font-bold mt-2" style={{ fontFamily: 'monospace' }}>COST: 0.10 ETH</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-              <p className="text-sm text-blue-300">
-                <span className="font-semibold">Current Balance:</span> {user?.balance?.toFixed(2) || '0'} ETH
+            <div className="bg-black border-2 border-yellow-400 p-4 mb-6">
+              <p className="text-sm text-yellow-400 font-bold" style={{ fontFamily: 'monospace' }}>
+                <span>BALANCE:</span> {user?.balance?.toFixed(2) || '0'} ETH
               </p>
             </div>
 
@@ -825,16 +855,18 @@ const MarketPlace = () => {
                   setShowUpgradeModal(false);
                   setSelectedPokemonToUpgrade(null);
                 }}
-                className="flex-1 py-3 px-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all"
+                className="flex-1 py-3 px-4 bg-gray-900 border-2 border-gray-700 text-white font-bold hover:border-red-400 transition-all"
+                style={{ fontFamily: 'monospace' }}
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleUpgradeLevel}
                 disabled={upgrading || (user?.balance || 0) < 0.1}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-amber-500 text-white font-bold hover:bg-amber-400 border-2 border-amber-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ fontFamily: 'monospace', boxShadow: '0 4px 0 #92400e' }}
               >
-                {upgrading ? 'Upgrading...' : 'Upgrade'}
+                {upgrading ? 'UPGRADING...' : 'UPGRADE'}
               </button>
             </div>
           </div>

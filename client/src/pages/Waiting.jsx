@@ -78,41 +78,70 @@ const Waiting = () => {
 
   if (!lobby) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900">
+      <div className="min-h-screen flex items-center justify-center bg-black" style={{
+        backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                          linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+        backgroundSize: '32px 32px',
+        backgroundColor: '#000'
+      }}>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl text-white font-semibold">Loading Battle Lobby...</p>
-          <p className="text-gray-400 mt-2">Code: {code}</p>
+          <div className="w-20 h-20 bg-yellow-400 mx-auto mb-6 animate-pulse" style={{
+            clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
+          }}></div>
+          <p className="text-2xl font-black text-yellow-400 uppercase" style={{ fontFamily: 'monospace' }}>LOADING...</p>
+          <p className="text-gray-400 mt-2 font-black uppercase" style={{ fontFamily: 'monospace' }}>CODE: {code}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-black p-6" style={{
+      backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                        linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+      backgroundSize: '32px 32px',
+      backgroundColor: '#000'
+    }}>
+      {/* Subtle Animated Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400" style={{
+          clipPath: 'polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-blue-400" style={{
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          filter: 'blur(20px)'
+        }}></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
-              Battle <span className="bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">Lobby</span>
+            <h1 className="text-3xl md:text-4xl font-black mb-2" style={{
+              fontFamily: 'monospace',
+              color: '#fbbf24',
+              textShadow: '2px 2px 0 #dc2626'
+            }}>
+              BATTLE <span className="text-red-500">LOBBY</span>
             </h1>
-            <p className="text-gray-400">Prepare for battle and configure your game settings</p>
+            <p className="text-yellow-400 font-black uppercase" style={{ fontFamily: 'monospace' }}>&gt; PREPARE_FOR_BATTLE.EXE</p>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Lobby Code */}
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-3 bg-gray-900 border-4 border-yellow-400 px-4 py-3" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="text-right">
-                <div className="text-xs text-gray-400 font-semibold">LOBBY CODE</div>
-                <div className="text-xl font-bold text-white tracking-widest">{code}</div>
+                <div className="text-xs text-yellow-400 font-black uppercase">LOBBY CODE</div>
+                <div className="text-2xl font-black text-white tracking-widest">{code}</div>
               </div>
               <button
                 onClick={handleCopyCode}
-                className="p-2 bg-amber-400 text-slate-900 rounded-xl hover:scale-110 transition-transform duration-300"
+                className="p-2 bg-yellow-400 border-2 border-yellow-600 hover:bg-yellow-300 transition-all duration-300"
                 title="Copy code"
+                style={{ boxShadow: '0 4px 0 #d97706' }}
               >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-black" strokeWidth={3} /> : <Copy className="w-4 h-4 text-black" strokeWidth={3} />}
               </button>
             </div>
           </div>
@@ -123,10 +152,10 @@ const Waiting = () => {
           {/* Left Column - Players & Chat */}
           <div className="lg:col-span-2 space-y-6">
             {/* Players List */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6">
+            <div className="bg-gray-900 border-4 border-yellow-400 p-6" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="flex items-center gap-3 mb-6">
-                <Users className="w-6 h-6 text-amber-400" />
-                <h2 className="text-xl font-bold text-white">Players ({lobby.players.length}/8)</h2>
+                <Users className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <h2 className="text-xl font-black text-white uppercase">Players ({lobby.players.length}/8)</h2>
               </div>
               <PlayersList
                 lobby={lobby}
@@ -136,10 +165,10 @@ const Waiting = () => {
             </div>
 
             {/* Chat Box */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6">
+            <div className="bg-gray-900 border-4 border-yellow-400 p-6" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="flex items-center gap-3 mb-6">
-                <MessageCircle className="w-6 h-6 text-blue-400" />
-                <h2 className="text-xl font-bold text-white">Battle Chat</h2>
+                <MessageCircle className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <h2 className="text-xl font-black text-white uppercase">Battle Chat</h2>
               </div>
               <ChatBox
                 messages={messages}
@@ -155,12 +184,12 @@ const Waiting = () => {
 
           {/* Right Column - Settings */}
           <div className="lg:col-span-1">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 sticky top-6">
+            <div className="bg-gray-900 border-4 border-yellow-400 p-6 sticky top-6" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="flex items-center gap-3 mb-6">
-                <Settings className="w-6 h-6 text-purple-400" />
-                <h2 className="text-xl font-bold text-white">Game Settings</h2>
+                <Settings className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <h2 className="text-xl font-black text-white uppercase">Settings</h2>
                 {isOwner && (
-                  <span className="px-2 py-1 bg-amber-400/20 text-amber-400 text-xs font-bold rounded-full">
+                  <span className="px-2 py-1 bg-yellow-400 text-black text-xs font-black uppercase border-2 border-yellow-600">
                     HOST
                   </span>
                 )}
@@ -209,9 +238,10 @@ const Waiting = () => {
                       return setError(`Please set: ${missing.join(', ')}`);
                     socket.emit('startGame', { code });
                   }}
-                  className="w-full mt-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-2xl hover:scale-105 shadow-2xl transition-all duration-300 flex items-center justify-center gap-3"
+                  className="w-full mt-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black border-4 border-green-700 hover:border-green-400 transition-all duration-300 flex items-center justify-center gap-3 uppercase"
+                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534' }}
                 >
-                  <Play className="w-5 h-5" />
+                  <Play className="w-5 h-5" strokeWidth={3} />
                   Start Battle
                 </button>
               )}
@@ -221,8 +251,8 @@ const Waiting = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="mt-6 p-4 bg-rose-500/20 border border-rose-500/30 rounded-2xl text-rose-400 text-center font-semibold animate-pulse">
-            {error}
+          <div className="mt-6 p-4 bg-gray-900 border-4 border-red-500 text-red-400 text-center font-black uppercase animate-pulse" style={{ fontFamily: 'monospace' }}>
+            ❌ {error}
           </div>
         )}
       </div>

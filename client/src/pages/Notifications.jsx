@@ -118,57 +118,77 @@ const Notifications = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-900 via-purple-800 to-blue-800 p-6 md:p-16">
+    <div className="relative min-h-screen bg-black p-6 md:p-16" style={{
+      backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                        linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+      backgroundSize: '32px 32px',
+      backgroundColor: '#000'
+    }}>
+      {/* Subtle Animated Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400" style={{
+          clipPath: 'polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute bottom-20 right-20 w-16 h-16 bg-blue-400" style={{
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          filter: 'blur(20px)'
+        }}></div>
+      </div>
+
       {/* Back button */}
       <button
         onClick={() => navigate('/dashboard')}
-        className="absolute top-6 left-6 p-3 md:p-4 rounded-full bg-yellow-400 text-blue-900 hover:bg-yellow-300 shadow-md transition-shadow"
+        className="absolute top-6 left-6 p-3 md:p-4 bg-gray-900 border-2 border-yellow-400 text-yellow-400 hover:border-green-400 transition-all"
+        style={{ fontFamily: 'monospace' }}
       >
-        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" strokeWidth={3} />
       </button>
 
       {/* Header */}
       <div className="text-center mb-8">
         <h1
-          className="text-3xl md:text-5xl font-extrabold text-yellow-400 mb-4 drop-shadow-lg"
-          style={{ fontFamily: 'Press Start 2P, cursive' }}
+          className="text-4xl md:text-6xl font-black text-yellow-400 mb-4 leading-tight"
+          style={{ fontFamily: 'monospace', textShadow: '3px 3px 0 #dc2626, 5px 5px 0 #000' }}
         >
-          Notifications
+          NOTIFICATIONS
         </h1>
         {unreadCount > 0 && (
-          <p className="text-yellow-200 text-lg">
-            {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+          <p className="text-green-400 text-lg font-bold" style={{ fontFamily: 'monospace' }}>
+            &gt; {unreadCount} UNREAD{unreadCount !== 1 ? 'S' : ''}
           </p>
         )}
       </div>
 
       {/* Controls */}
       <div className="max-w-4xl mx-auto mb-8">
-        <div className="flex flex-wrap justify-between items-center gap-4 bg-blue-900/30 rounded-lg p-4">
-          <div className="flex gap-2">
-            <label className="text-yellow-200 font-bold">Filter:</label>
+        <div className="flex flex-wrap justify-between items-center gap-4 bg-gray-900 border-2 border-gray-700 p-4">
+          <div className="flex gap-2 items-center">
+            <label className="text-yellow-400 font-bold" style={{ fontFamily: 'monospace' }}>FILTER:</label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="px-3 py-1 bg-blue-900 text-yellow-200 border border-yellow-400 rounded"
+              className="px-3 py-1 bg-black text-yellow-400 border-2 border-yellow-400 font-bold"
+              style={{ fontFamily: 'monospace' }}
             >
-              <option value="all">All</option>
-              <option value="unread">Unread</option>
-              <option value="read">Read</option>
-              <option value="battle">Battle</option>
-              <option value="pokemon">Pokémon</option>
-              <option value="message">Messages</option>
-              <option value="system">System</option>
+              <option value="all">ALL</option>
+              <option value="unread">UNREAD</option>
+              <option value="read">READ</option>
+              <option value="battle">BATTLE</option>
+              <option value="pokemon">POKEMON</option>
+              <option value="message">MESSAGES</option>
+              <option value="system">SYSTEM</option>
             </select>
           </div>
           
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-400"
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-black font-bold hover:bg-green-400 border-2 border-green-700"
+              style={{ fontFamily: 'monospace', boxShadow: '0 4px 0 #166534' }}
             >
-              <Check className="w-4 h-4" />
-              Mark All Read
+              <Check className="w-4 h-4" strokeWidth={3} />
+              MARK ALL READ
             </button>
           )}
         </div>
@@ -178,27 +198,27 @@ const Notifications = () => {
       <div className="max-w-4xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-xl md:text-2xl text-yellow-400 font-bold animate-pulse">
-              Loading notifications...
+            <div className="text-xl md:text-2xl text-yellow-400 font-bold animate-pulse" style={{ fontFamily: 'monospace' }}>
+              LOADING...
             </div>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-xl md:text-2xl text-red-400 font-bold bg-red-900/30 px-6 py-4 rounded-xl text-center">
-              {error}
+            <div className="text-xl md:text-2xl text-red-400 font-bold bg-red-900 border-4 border-red-500 px-6 py-4 text-center" style={{ fontFamily: 'monospace' }}>
+              ⚠ {error}
             </div>
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <Bell className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <div className="text-xl md:text-2xl text-gray-300 font-bold">
-                No notifications found
+              <Bell className="w-16 h-16 text-gray-600 mx-auto mb-4" strokeWidth={2} />
+              <div className="text-xl md:text-2xl text-gray-400 font-bold" style={{ fontFamily: 'monospace' }}>
+                NO NOTIFICATIONS
               </div>
-              <p className="text-yellow-200 mt-2">
+              <p className="text-green-400 mt-2 font-bold" style={{ fontFamily: 'monospace' }}>
                 {filter === 'all' 
-                  ? "You're all caught up!" 
-                  : `No ${filter} notifications`
+                  ? "ALL CAUGHT UP!"
+                  : `NO ${filter.toUpperCase()} NOTIFICATIONS`
                 }
               </p>
             </div>
@@ -208,11 +228,12 @@ const Notifications = () => {
             {filteredNotifications.map((notification) => (
               <div
                 key={notification._id}
-                className={`bg-gradient-to-r from-blue-800/70 to-purple-900/70 backdrop-blur-sm rounded-xl p-6 shadow-2xl border-2 transition-all hover:scale-105 ${
+                className={`bg-gray-900 p-6 border-2 transition-all hover:scale-105 ${
                   notification.read 
-                    ? 'border-yellow-400/30 opacity-75' 
-                    : 'border-yellow-400 shadow-yellow-400/30'
-                } ${getNotificationColor(notification.type)}`}
+                    ? 'border-gray-700 opacity-60' 
+                    : 'border-yellow-400'
+                }`}
+                style={{ fontFamily: 'monospace' }}
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">

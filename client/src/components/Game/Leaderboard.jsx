@@ -61,68 +61,68 @@ const Leaderboard = ({ gameState, user, socket }) => {
   };
 
   return (
-    <div className={`bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl flex flex-col shadow-2xl transition-all duration-300 ${
+    <div className={`bg-gray-900 border-4 border-yellow-400 flex flex-col transition-all duration-300 ${
       isCollapsed ? 'w-16' : 'w-80'
-    }`}>
+    }`} style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
       
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors duration-300 rounded-t-2xl"
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800 transition-colors duration-300 bg-gray-950"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-400" />
-            <h2 className="font-bold text-white text-lg">Leaderboard</h2>
+            <Trophy className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+            <h2 className="font-black text-white text-lg uppercase">Scoreboard</h2>
           </div>
         )}
-        <div className={`w-8 h-8 bg-amber-400/20 border border-amber-400/30 rounded-lg flex items-center justify-center transition-transform duration-300 ${
+        <div className={`w-10 h-10 bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center ${
           isCollapsed ? 'rotate-180' : ''
-        }`}>
-          <span className="text-amber-400 text-sm">▲</span>
+        }`} style={{ clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)' }}>
+          <span className="text-black text-lg font-black">▲</span>
         </div>
       </div>
 
       {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto space-y-3 p-4 max-h-80 scrollbar-thin scrollbar-thumb-amber-400/30 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto space-y-2 p-4 max-h-80 bg-gray-950">
           {sortedPlayers.length > 0 ? (
             sortedPlayers.map((player, idx) => (
-              <div key={player.id} className={`p-3 rounded-xl border-2 transition-all duration-300 ${
+              <div key={player.id} className={`p-3 border-4 transition-all duration-300 ${
                 player.id === user?.id 
-                  ? 'bg-emerald-500/20 border-emerald-400 shadow-lg' 
+                  ? 'border-emerald-400 bg-emerald-500/10' 
                   : player.health <= 0
-                  ? 'bg-rose-500/20 border-rose-400'
-                  : 'bg-white/5 border-white/10'
+                  ? 'border-rose-400 bg-rose-500/10'
+                  : 'border-gray-600 bg-gray-900'
               }`}>
                 {/* Player Header */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 flex items-center justify-center">
+                    <div className="w-8 h-8 flex items-center justify-center border-2 border-yellow-400 bg-yellow-400/20">
                       {getRankIcon(idx)}
                     </div>
-                    <span className={`font-bold ${
+                    <span className={`font-black text-sm ${
                       player.id === user?.id 
                         ? 'text-emerald-400' 
                         : player.health <= 0
                         ? 'text-rose-400'
                         : 'text-white'
-                    }`}>
-                      {player.name}
+                    }`} style={{ fontFamily: 'monospace' }}>
+                      {player.name.toUpperCase()}
                     </span>
                     {player.health <= 0 && (
-                      <Skull className="w-3 h-3 text-rose-400" />
+                      <Skull className="w-4 h-4 text-rose-400" strokeWidth={3} />
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-amber-300">{player.score !== undefined ? player.score : (player.stats?.score || 0)}</div>
-                    <div className="text-xs text-gray-400">Score</div>
+                    <div className="text-xl font-black text-yellow-400" style={{ fontFamily: 'monospace' }}>{player.score !== undefined ? player.score : (player.stats?.score || 0)}</div>
+                    <div className="text-xs text-gray-400 font-black">SCORE</div>
                   </div>
                 </div>
                 
                 {/* Health Bar */}
-                <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden mb-2">
+                <div className="w-full bg-gray-800 h-3 overflow-hidden mb-2 border-2 border-gray-700">
                   <div
-                    className={`h-2 rounded-full transition-all duration-500 ${
+                    className={`h-full transition-all duration-500 ${
                       player.health > 70 ? 'bg-emerald-500' :
                       player.health > 30 ? 'bg-amber-500' : 'bg-rose-500'
                     }`}
@@ -131,27 +131,27 @@ const Leaderboard = ({ gameState, user, socket }) => {
                 </div>
                 
                 {/* Stats */}
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-4">
+                <div className="flex justify-between items-center text-xs font-black">
+                  <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-gray-300">
-                      <Heart className="w-3 h-3" />
+                      <Heart className="w-3 h-3" strokeWidth={3} />
                       {player.health || 0}%
                     </div>
                     <div className="text-gray-300">
                       K/D: {getKDText(player)}
                     </div>
                   </div>
-                  <div className="text-amber-400 font-semibold">
-                    Ratio: {getKDRatio(player)}
+                  <div className="text-yellow-400">
+                    RATIO: {getKDRatio(player)}
                   </div>
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center py-8">
-              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">No players yet</p>
-              <p className="text-gray-500 text-xs mt-1">Waiting for players to join...</p>
+              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-3" strokeWidth={3} />
+              <p className="text-gray-400 text-sm font-black" style={{ fontFamily: 'monospace' }}>NO PLAYERS</p>
+              <p className="text-gray-500 text-xs mt-1 font-black" style={{ fontFamily: 'monospace' }}>WAITING...</p>
             </div>
           )}
         </div>

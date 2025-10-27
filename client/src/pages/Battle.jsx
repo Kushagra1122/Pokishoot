@@ -95,12 +95,26 @@ const Battle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-blue-400 rounded-full blur-xl animate-pulse delay-75"></div>
-        <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-purple-400 rounded-full blur-xl animate-pulse delay-150"></div>
+    <div className="min-h-screen bg-black relative overflow-hidden" style={{
+      backgroundImage: `linear-gradient(#0a0a0a 1px, transparent 1px),
+                        linear-gradient(90deg, #0a0a0a 1px, transparent 1px)`,
+      backgroundSize: '32px 32px',
+      backgroundColor: '#000'
+    }}>
+      {/* Subtle Animated Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400" style={{
+          clipPath: 'polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-blue-400" style={{
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          filter: 'blur(20px)'
+        }}></div>
+        <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-purple-400" style={{
+          clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+          filter: 'blur(20px)'
+        }}></div>
       </div>
 
       {/* Header */}
@@ -108,14 +122,19 @@ const Battle = () => {
         <div className="flex justify-between items-center p-6 max-w-7xl mx-auto">
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300 hover:scale-110"
+            className="p-3 bg-gray-900 border-2 border-gray-700 text-white hover:border-yellow-400 transition-all hover:scale-110"
             title="Back to Dashboard"
+            style={{ fontFamily: 'monospace' }}
           >
-            <Home className="w-5 h-5" />
+            <Home className="w-5 h-5" strokeWidth={3} />
           </button>
 
-          <h1 className="text-3xl md:text-4xl font-black text-white">
-            Battle <span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Arena</span>
+          <h1 className="text-3xl md:text-4xl font-black" style={{
+            fontFamily: 'monospace',
+            color: '#fbbf24',
+            textShadow: '3px 3px 0 #dc2626'
+          }}>
+            BATTLE <span className="text-red-500">ARENA</span>
           </h1>
         </div>
       </div>
@@ -125,54 +144,61 @@ const Battle = () => {
         <div className="w-full max-w-2xl">
           {/* Subtitle */}
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Create or Join a Battle
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3" style={{ fontFamily: 'monospace' }}>
+              CREATE OR JOIN BATTLE
             </h2>
-            <p className="text-gray-300 text-lg">
-              Challenge other trainers in thrilling Pokémon battles
+            <p className="text-green-400 text-lg" style={{ fontFamily: 'monospace' }}>
+              &gt; ENTER_THE_ARENA.EXE
             </p>
           </div>
 
           {/* Main Card Container */}
           <div className="space-y-6">
             {/* Create Lobby Card */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all duration-300">
+            <div className="bg-gray-900 border-4 border-yellow-400 p-8 hover:border-green-400 transition-all duration-300" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center" style={{
+                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+                  boxShadow: '0 4px 0 #166534'
+                }}>
+                  <Plus className="w-7 h-7 text-black" strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Create Lobby</h3>
-                  <p className="text-gray-400 text-sm">Be the host and wait for challengers</p>
+                  <h3 className="text-xl font-black text-white uppercase">Create Lobby</h3>
+                  <p className="text-yellow-400 text-sm font-black">Host and wait for challengers</p>
                 </div>
               </div>
 
               <button
                 onClick={handleCreateLobby}
                 disabled={creating || !user}
-                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-2xl hover:shadow-lg hover:scale-105 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black border-4 border-green-700 hover:border-green-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
+                style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534' }}
               >
-                <Zap className="w-5 h-5" />
-                {creating ? 'Creating Battle Lobby...' : 'Create New Lobby'}
+                <Zap className="w-5 h-5" strokeWidth={3} />
+                {creating ? 'Creating...' : 'Create Lobby'}
               </button>
             </div>
 
             {/* Divider */}
             <div className="flex items-center gap-4">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-              <span className="text-white/60 font-semibold text-sm px-4">OR</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+              <div className="flex-1 h-1 bg-yellow-400"></div>
+              <span className="text-yellow-400 font-black text-lg px-4" style={{ fontFamily: 'monospace' }}>OR</span>
+              <div className="flex-1 h-1 bg-yellow-400"></div>
             </div>
 
             {/* Join Lobby Card */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 hover:border-white/20 transition-all duration-300">
+            <div className="bg-gray-900 border-4 border-yellow-400 p-8 hover:border-blue-400 transition-all duration-300" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
-                  <LogIn className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center" style={{
+                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+                  boxShadow: '0 4px 0 #1e40af'
+                }}>
+                  <LogIn className="w-7 h-7 text-black" strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Join Lobby</h3>
-                  <p className="text-gray-400 text-sm">Enter a code to join an existing battle</p>
+                  <h3 className="text-xl font-black text-white uppercase">Join Lobby</h3>
+                  <p className="text-yellow-400 text-sm font-black">Enter code to join battle</p>
                 </div>
               </div>
 
@@ -181,17 +207,19 @@ const Battle = () => {
                   type="text"
                   value={lobbyCode}
                   onChange={(e) => setLobbyCode(e.target.value.toUpperCase())}
-                  placeholder="Enter Lobby Code (e.g., ABC123)"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                  placeholder="ENTER LOBBY CODE"
+                  className="w-full px-6 py-4 bg-gray-950 border-4 border-gray-700 text-white font-black placeholder-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-all duration-300 uppercase"
+                  style={{ fontFamily: 'monospace' }}
                 />
 
                 <button
                   onClick={handleJoinLobby}
                   disabled={joining || !user}
-                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-2xl hover:shadow-lg hover:scale-105 shadow-lg transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black border-4 border-blue-700 hover:border-blue-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
+                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #1e40af' }}
                 >
-                  <Zap className="w-5 h-5" />
-                  {joining ? 'Joining Battle...' : 'Join Lobby'}
+                  <Zap className="w-5 h-5" strokeWidth={3} />
+                  {joining ? 'Joining...' : 'Join Lobby'}
                 </button>
               </div>
             </div>
@@ -199,22 +227,22 @@ const Battle = () => {
 
           {/* Error Messages */}
           {error && (
-            <div className="mt-6 p-4 bg-rose-500/20 backdrop-blur-sm border border-rose-500/30 rounded-2xl text-rose-300 text-center font-semibold">
-              {error}
+            <div className="mt-6 p-4 bg-gray-900 border-4 border-red-500 text-red-400 text-center font-black uppercase" style={{ fontFamily: 'monospace' }}>
+              ❌ {error}
             </div>
           )}
 
           {/* Login Required Message */}
           {!user && (
-            <div className="mt-6 p-4 bg-amber-500/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl text-amber-300 text-center font-semibold">
-              ⚠️ Please log in to access battles
+            <div className="mt-6 p-4 bg-gray-900 border-4 border-amber-500 text-amber-400 text-center font-black uppercase" style={{ fontFamily: 'monospace' }}>
+              ⚠️ LOGIN REQUIRED
             </div>
           )}
 
           {/* Info Footer */}
           <div className="mt-12 text-center">
-            <p className="text-gray-400 text-sm">
-              Ready to prove your skills? Create a lobby or join your friend's battle!
+            <p className="text-yellow-400 text-sm font-black uppercase" style={{ fontFamily: 'monospace' }}>
+              &gt; READY_TO_BATTLE.EXE
             </p>
           </div>
         </div>

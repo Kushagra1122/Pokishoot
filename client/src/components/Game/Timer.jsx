@@ -18,14 +18,17 @@ const Timer = ({ timeLeft }) => {
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-4 shadow-2xl">
+    <div className="bg-gray-900 border-4 border-yellow-400 px-6 py-4" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
-          <Clock className="w-5 h-5 text-white" />
+        <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center" style={{
+          clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+          boxShadow: '0 4px 0 #d97706'
+        }}>
+          <Clock className="w-6 h-6 text-black" strokeWidth={3} />
         </div>
         <div>
-          <div className="text-sm text-gray-400 font-semibold">TIME REMAINING</div>
-          <div className={`text-2xl font-bold font-mono tracking-wider ${getTimeColor()}`}>
+          <div className="text-xs text-yellow-400 font-black uppercase">TIME LEFT</div>
+          <div className={`text-3xl font-black tracking-wider ${getTimeColor()}`} style={{ fontFamily: 'monospace' }}>
             {formatTime(timeLeft)}
           </div>
         </div>
