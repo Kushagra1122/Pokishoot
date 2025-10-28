@@ -47,7 +47,9 @@ class GameManager {
 
     game.startTimer((gameCode, winnerId, reason) => {
       this.endGame(gameCode, winnerId, reason);
-    }, this.io);
+    }, this.io, (gameCode) => {
+      this.emitLeaderboardUpdate(gameCode);
+    });
 
     return game;
   }
@@ -102,6 +104,12 @@ class GameManager {
     // Add kill to the killer if specified
     if (killerId && killerId !== playerId) {
       game.addKill(killerId, playerId);
+      
+      // Update the killer's score immediately
+      const killer = game.getPlayer(killerId);
+      if (killer) {
+        killer.stats.score = game.calculateScore(killer);
+      }
     }
     
     this.io.to(gameCode).emit("playerDefeated", {
@@ -397,7 +405,11 @@ class GameManager {
 
     // Calculate final survival time for all players
     game.players.forEach(player => {
-      player.stats.survivalTime = Math.floor((Date.now() - player.stats.spawnTime) / 1000);
+      // Update survival time to final value
+      if (player.health > 0) {
+        player.stats.survivalTime = Math.floor((Date.now() - player.stats.spawnTime) / 1000);
+      }
+      // Recalculate final score
       player.stats.score = game.calculateScore(player);
     });
 
@@ -518,12 +530,18 @@ class GameManager {
     const game = this.getGame(gameCode);
     if (!game) return;
 
-    // Calculate current scores for all players
+    // Calculate current scores for all players with updated survival time
     game.players.forEach(player => {
+      // Update survival time if player is alive
+      if (player.health > 0) {
+        const currentTime = Date.now();
+        player.stats.survivalTime = Math.floor((currentTime - player.stats.spawnTime) / 1000);
+      }
+      // Recalculate score with updated survival time
       player.stats.score = game.calculateScore(player);
     });
 
-    // Prepare leaderboard data
+    // Prepare leaderboard data - include both kills/deaths at top level and in stats
     const leaderboardData = game.players.map(player => ({
       id: player.id,
       name: player.name,
@@ -536,7 +554,14 @@ class GameManager {
       survivalTime: player.stats.survivalTime || 0,
       accuracy: player.stats.shotsFired > 0 
         ? ((player.stats.shotsHit / player.stats.shotsFired) * 100).toFixed(1)
-        : '0.0'
+        : '0.0',
+      // Include stats object for backward compatibility
+      stats: {
+        kills: player.stats.kills || 0,
+        deaths: player.stats.deaths || 0,
+        assists: player.stats.assists || 0,
+        score: player.stats.score || 0
+      }
     })).sort((a, b) => b.score - a.score);
 
     // Emit to all players in the game

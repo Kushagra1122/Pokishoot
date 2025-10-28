@@ -42,7 +42,7 @@ class Game {
     }));
   }
 
-  startTimer(onGameEnd, io) {
+  startTimer(onGameEnd, io, onLeaderboardUpdate) {
     console.log(`⏳ Timer started for game ${this.code} (${this.timeLeft}s)`);
     this.io = io; // Store reference to socket.io for timer updates
 
@@ -57,10 +57,13 @@ class Game {
       if (this.timeLeft <= 0) {
         clearInterval(this.timerInterval);
         this.timerInterval = null;
+        if (this.leaderboardInterval) {
+          clearInterval(this.leaderboardInterval);
+          this.leaderboardInterval = null;
+        }
 
-        // Determine winner by highest score instead of random
+        // Determine winner by highest score - calculateScore already updates survival time
         this.players.forEach(player => {
-          player.stats.survivalTime = Math.floor((Date.now() - player.stats.spawnTime) / 1000);
           player.stats.score = this.calculateScore(player);
         });
         
@@ -71,6 +74,13 @@ class Game {
         onGameEnd(this.code, winner?.id || null, "time_up");
       }
     }, 1000);
+
+    // Start periodic leaderboard updates (every 2 seconds)
+    if (onLeaderboardUpdate) {
+      this.leaderboardInterval = setInterval(() => {
+        onLeaderboardUpdate(this.code);
+      }, 2000);
+    }
   }
 
   getPlayer(playerId) {
@@ -110,6 +120,7 @@ class Game {
       player.direction = 'down'; // Reset direction
       player.stats.deaths += 1; // Increment death count
       player.stats.spawnTime = Date.now(); // Reset spawn time
+      player.stats.survivalTime = 0; // Reset survival time
       player.stats.score = this.calculateScore(player); // Update score
       console.log(`✅ ${player.name} respawned at (${newPosition.x}, ${newPosition.y}) with ${player.health}HP (Deaths: ${player.stats.deaths})`);
     }
@@ -150,6 +161,14 @@ class Game {
   }
 
   calculateScore(player) {
+    // First, update survival time for accurate scoring
+    if (player.health > 0) {
+      // Calculate current survival time (seconds since last spawn)
+      const currentTime = Date.now();
+      const timeSinceSpawn = Math.floor((currentTime - player.stats.spawnTime) / 1000);
+      player.stats.survivalTime = timeSinceSpawn;
+    }
+    
     // Enhanced scoring algorithm
     // Kills: +100 points
     const killPoints = player.stats.kills * 100;
