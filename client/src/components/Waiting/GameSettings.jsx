@@ -33,6 +33,7 @@ const GameSettings = ({
             style={{ fontFamily: 'monospace' }}
           >
             <option value="">Select...</option>
+            <option value="1">1 minute</option>
             <option value="3">3 minutes</option>
             <option value="5">5 minutes</option>
             <option value="10">10 minutes</option>
@@ -80,7 +81,7 @@ const GameSettings = ({
 
         {isRated && (
           <div>
-            <label className="block text-yellow-400 mb-2 font-black uppercase text-xs" style={{ fontFamily: 'monospace' }}>Stake (ETH)</label>
+            <label className="block text-yellow-400 mb-2 font-black uppercase text-xs" style={{ fontFamily: 'monospace' }}>Stake (GLMR)</label>
             <input
               type="number"
               value={gameSettings.stake || ''}

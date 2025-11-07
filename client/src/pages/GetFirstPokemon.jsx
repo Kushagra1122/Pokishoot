@@ -33,14 +33,25 @@ const GetFirstPokemon = () => {
   const claim = async (id) => {
     if (!token) return navigate("/login");
     setClaimingId(id);
+    setError(null);
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API_BASE}/api/pokemon/claim`,
         { pokemonId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // Check if NFT was minted
+      if (response.data.nftMinted && response.data.nftTxHash) {
+        console.log(`✅ NFT minted! Token ID: ${response.data.nftTokenId}, TX: ${response.data.nftTxHash}`);
+      }
+
       await refreshUser();
-      navigate("/dashboard");
+      
+      // Small delay to show success before navigating
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to claim Pokémon");
     } finally {

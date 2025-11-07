@@ -1,6 +1,7 @@
 const Pokemon = require('../models/Pokemon')
 const User = require('../models/User')
 const Listing = require('../models/Listing')
+const nftService = require('../services/nftService')
 
 // GET /api/pokemon
 exports.getAll = async (req, res) => {
@@ -34,13 +35,53 @@ exports.claim = async (req, res) => {
     const already = user.pokemon.find(p => String(p.pokemonId) === String(pokemon._id))
     if (already) return res.status(409).json({ message: 'User already has this Pokémon' })
 
-    // Add pokemon to user's collection
-    user.pokemon.push({ pokemonId: pokemon._id, level: 1 })
+    // Check if user has wallet connected for NFT minting
+    let nftTokenId = null;
+    let nftTxHash = null;
+
+    if (user.walletAddress && nftService.isReady()) {
+      try {
+        // Mint NFT on blockchain
+        const nftResult = await nftService.mintPokemon(
+          user.walletAddress,
+          {
+            _id: pokemon._id,
+            name: pokemon.name,
+            type: pokemon.type,
+            baseStats: pokemon.baseStats,
+            sprite: pokemon.sprite,
+          }
+        );
+
+        nftTokenId = nftResult.tokenId;
+        nftTxHash = nftResult.txHash;
+
+        console.log(`✅ NFT minted for ${pokemon.name}: Token ID ${nftTokenId}`);
+      } catch (nftError) {
+        console.error('⚠️  NFT minting failed (continuing with off-chain):', nftError.message);
+        // Continue without NFT - user still gets the Pokemon
+      }
+    } else {
+      console.log('ℹ️  NFT minting skipped - wallet not connected or NFT service not ready');
+    }
+
+    // Add pokemon to user's collection (with or without NFT)
+    user.pokemon.push({
+      pokemonId: pokemon._id,
+      level: 1,
+      nftTokenId: nftTokenId,
+      nftTxHash: nftTxHash,
+    })
     await user.save()
 
     // return populated user object
     const populated = await User.findById(user._id).populate('pokemon.pokemonId')
-    res.json({ user: populated })
+    res.json({
+      user: populated,
+      nftTokenId: nftTokenId,
+      nftTxHash: nftTxHash,
+      nftMinted: !!nftTokenId,
+    })
   } catch (err) {
     console.error('claim pokemon error', err)
     res.status(500).json({ message: 'Server error' })
@@ -239,6 +280,54 @@ exports.getMyListings = async (req, res) => {
     res.status(500).json({ message: 'Server error' })
   }
 }
+
+// GET /api/nft/metadata/:pokemonId
+// Get NFT metadata for a Pokemon (ERC721 tokenURI standard)
+exports.getNFTMetadata = async (req, res) => {
+  try {
+    const { pokemonId } = req.params;
+
+    const pokemon = await Pokemon.findById(pokemonId);
+    if (!pokemon) {
+      return res.status(404).json({ error: 'Pokemon not found' });
+    }
+
+    // ERC721 Metadata JSON standard
+    const metadata = {
+      name: pokemon.name,
+      description: `A ${pokemon.type} type Pokemon in PokeWars`,
+      image: pokemon.sprite,
+      external_url: `${process.env.API_BASE_URL || 'http://localhost:4000'}/pokemon/${pokemon._id}`,
+      attributes: [
+        {
+          trait_type: "Type",
+          value: pokemon.type,
+        },
+        {
+          trait_type: "Shoot Range",
+          value: pokemon.baseStats.shootRange,
+        },
+        {
+          trait_type: "Shoots Per Minute",
+          value: pokemon.baseStats.shootPerMin,
+        },
+        {
+          trait_type: "Hit Points",
+          value: pokemon.baseStats.hitPoints,
+        },
+        {
+          trait_type: "Speed",
+          value: pokemon.baseStats.speed,
+        },
+      ],
+    };
+
+    res.json(metadata);
+  } catch (err) {
+    console.error('get NFT metadata error', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 // POST /api/pokemon/cancel-listing
 // body: { listingId }

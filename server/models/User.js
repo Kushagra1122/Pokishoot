@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    trim: true,
   },
   passwordHash: {
     type: String,
@@ -23,6 +24,15 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 1,
         required: true,
+      },
+      nftTokenId: {
+        type: String,
+        default: null,
+        sparse: true,
+      },
+      nftTxHash: {
+        type: String,
+        default: null,
       },
     },
   ],
@@ -96,6 +106,17 @@ const UserSchema = new mongoose.Schema({
   preferredPokemon: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Pokemon'
+  },
+  walletAddress: {
+    type: String,
+    default: null,
+    sparse: true, // Allow multiple null values
+    index: true
+  },
+  walletType: {
+    type: String,
+    enum: ['evm', 'substrate', null],
+    default: null
   },
   lastActive: {
     type: Date,

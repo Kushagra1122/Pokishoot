@@ -12,4 +12,7 @@ router.post('/pokemon/upgrade-level', authMiddleware, pokemonController.upgradeP
 router.get('/pokemon/my-listings', authMiddleware, pokemonController.getMyListings)
 router.post('/pokemon/cancel-listing', authMiddleware, pokemonController.cancelListing)
 
+// NFT metadata endpoint (ERC721 tokenURI standard)
+router.get('/nft/metadata/:pokemonId', pokemonController.getNFTMetadata)
+
 module.exports = router

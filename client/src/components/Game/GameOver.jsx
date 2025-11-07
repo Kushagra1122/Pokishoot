@@ -1,6 +1,6 @@
 // GameOver.jsx (Enhanced)
 import React from 'react';
-import { Trophy, Star, RotateCcw, Home, Crown, Target, Zap, Award, Users, TrendingUp } from 'lucide-react';
+import { Trophy, Star, RotateCcw, Home, Crown, Target, Zap, Award, Users, TrendingUp, Coins } from 'lucide-react';
 
 const GameOver = ({ gameState, user, onPlayAgain, onReturnHome }) => {
   if (!gameState?.result) return null;
@@ -39,8 +39,8 @@ const GameOver = ({ gameState, user, onPlayAgain, onReturnHome }) => {
   const ResultIcon = resultConfig.icon;
 
   return (
-    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-6">
-      <div className="bg-gray-900 border-4 border-yellow-400 p-8 max-w-4xl w-full" style={{ fontFamily: 'monospace', boxShadow: '0 12px 0 #92400e' }}>
+    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-6 overflow-y-auto">
+      <div className="bg-gray-900 border-4 border-yellow-400 p-8 max-w-4xl w-full my-auto" style={{ fontFamily: 'monospace', boxShadow: '0 12px 0 #92400e' }}>
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-amber-600 mx-auto mb-6 flex items-center justify-center" style={{
@@ -141,7 +141,7 @@ const GameOver = ({ gameState, user, onPlayAgain, onReturnHome }) => {
           </div>
           <div className="bg-gray-950 border-4 border-gray-700 p-4 text-center">
             <div className="text-2xl font-black text-yellow-400" style={{ fontFamily: 'monospace' }}>
-              {gameState.settings?.stake ? `${gameState.settings.stake} ETH` : 'Free'}
+              {gameState.settings?.stake ? `${gameState.settings.stake} GLMR` : 'Free'}
             </div>
             <div className="text-xs text-gray-400 font-black uppercase" style={{ fontFamily: 'monospace' }}>Stake</div>
           </div>
@@ -178,6 +178,75 @@ const GameOver = ({ gameState, user, onPlayAgain, onReturnHome }) => {
             Return to Base
           </button>
         </div>
+
+        {/* Stake Distribution Info */}
+        {gameState.settings?.gameType === 'rated' && gameState.settings?.stake && (
+          <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/20 to-amber-600/20 border-4 border-yellow-400">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Coins className="w-5 h-5 text-yellow-400" strokeWidth={3} />
+              <h3 className="text-lg font-black text-yellow-400 uppercase" style={{ fontFamily: 'monospace' }}>
+                Stake Distribution
+              </h3>
+            </div>
+            <div className="text-center space-y-2">
+              {isWinner && (
+                <div className="text-green-400 font-black text-xl mb-2" style={{ fontFamily: 'monospace' }}>
+                  🎉 YOU WON {Number(gameState.settings.stake) * 2} GLMR! 🎉
+                </div>
+              )}
+              {!isWinner && !isDraw && (
+                <div className="text-gray-400 font-black text-sm mb-2" style={{ fontFamily: 'monospace' }}>
+                  Stake distributed to winner
+                </div>
+              )}
+              <div className="text-xs text-gray-400 font-black uppercase" style={{ fontFamily: 'monospace' }}>
+                Total Pot: {Number(gameState.settings.stake) * 2} GLMR
+              </div>
+              
+              {/* Payout Status */}
+              {gameState.result?.blockchainResult && (
+                <div className="mt-3 pt-3 border-t border-yellow-400/30 space-y-2">
+                  {gameState.result.blockchainResult.settled === true && (
+                    <div className="text-green-400 text-xs font-black uppercase" style={{ fontFamily: 'monospace' }}>
+                      ✅ PAYOUT CONFIRMED ON BLOCKCHAIN
+                    </div>
+                  )}
+                  {gameState.result.blockchainResult.settled === false && (
+                    <div className="text-yellow-400 text-xs font-black uppercase" style={{ fontFamily: 'monospace' }}>
+                      ⏳ Payout pending confirmation...
+                    </div>
+                  )}
+                  {gameState.result.blockchainResult.txHash && (
+                    <div className="space-y-1">
+                      <div className="text-xs text-blue-400 font-black uppercase break-all" style={{ fontFamily: 'monospace' }}>
+                        TX: {gameState.result.blockchainResult.txHash}
+                      </div>
+                      <a
+                        href={`https://moonbase.moonscan.io/tx/${gameState.result.blockchainResult.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-300 hover:text-blue-200 underline font-black uppercase inline-block"
+                        style={{ fontFamily: 'monospace' }}
+                      >
+                        View on Explorer ↗
+                      </a>
+                    </div>
+                  )}
+                  {gameState.result.blockchainResult.winnerAddress && (
+                    <div className="text-xs text-gray-400 font-black uppercase break-all" style={{ fontFamily: 'monospace' }}>
+                      Winner Address: {gameState.result.blockchainResult.winnerAddress}
+                    </div>
+                  )}
+                  {gameState.result.blockchainResult.payoutAmount && (
+                    <div className="text-xs text-green-300 font-black uppercase" style={{ fontFamily: 'monospace' }}>
+                      Payout Amount: {gameState.result.blockchainResult.payoutAmount} GLMR
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Additional Info */}
         {gameState.settings?.gameType === 'rated' && (

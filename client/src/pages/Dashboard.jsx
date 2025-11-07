@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, ShoppingCart, Sword, User, Bell, Star, Home } from 'lucide-react';
+import WalletConnect from '../components/WalletConnect';
 
 export default function Dashboard() {
   const { user, logout, selectedPokemon } = useContext(AuthContext);
@@ -93,6 +94,16 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center py-12">
+        {/* Wallet Connection Section */}
+        <div className="mb-8 max-w-md w-full">
+          <WalletConnect 
+            onWalletLinked={() => {
+              // Refresh user data to get updated wallet info
+              window.location.reload();
+            }}
+          />
+        </div>
+
         {/* Welcome Section */}
         <div className="mb-12">
           <h2 className="text-5xl md:text-7xl font-black mb-6 leading-tight" style={{

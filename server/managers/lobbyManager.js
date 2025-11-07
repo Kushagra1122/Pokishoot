@@ -227,9 +227,16 @@ startGame(socket, code) {
   }
 
   // For rated games, collect stakes from all players before starting
-  if (lobby.gameSettings.gameType === "rated") {
+  // Only if blockchain service is ready and stake is set
+  if (lobby.gameSettings.gameType === "rated" && lobby.gameSettings.stake > 0) {
+    const blockchainService = require('../services/blockchainService');
+    if (blockchainService.isReady()) {
     this.collectStakesFromAllPlayers(lobby, socket);
     return;
+    } else {
+      // Blockchain not ready - allow rated game without staking
+      console.log('⚠️  Blockchain service not ready, starting rated game without staking');
+    }
   }
 
   lobby.status = "starting";
@@ -259,86 +266,250 @@ async collectStakesFromAllPlayers(lobby, socket) {
   console.log(`💰 Collecting stakes from ${lobby.players.length} players for rated game`);
   
   try {
-    // Generate unique game ID for the contract
-    const gameId = ethers.keccak256(
-      ethers.toUtf8Bytes(`${lobby.code}-${Date.now()}`)
-    );
+    const blockchainService = require('../services/blockchainService');
+    const User = require('../models/User');
 
-    // Initialize staking status for all players
+    // Check if blockchain service is ready
+    if (!blockchainService.isReady()) {
+      console.log('⚠️  Blockchain service not ready, skipping staking');
+      // Start game without blockchain staking
+      this.startGameWithoutBlockchain(lobby);
+      return;
+    }
+
+    // Get wallet addresses for all players
+    const playerAddresses = [];
+    for (const player of lobby.players) {
+      const user = await User.findById(player.id);
+      if (!user || !user.walletAddress) {
+        console.log(`⚠️  Player ${player.name} has no wallet - starting game without blockchain staking`);
+        // Start game without blockchain staking
+        this.startGameWithoutBlockchain(lobby);
+        return;
+      }
+      playerAddresses.push({
+        id: player.id,
+        name: player.name,
+        walletAddress: user.walletAddress
+      });
+    }
+
+    if (playerAddresses.length !== 2) {
+      console.log(`⚠️  Supports 2-player matches only, starting game without blockchain staking`);
+      // Start game without blockchain staking
+      this.startGameWithoutBlockchain(lobby);
+      return;
+    }
+
+    // Generate match ID (same as game code hash)
+    const matchId = blockchainService.generateMatchId(lobby.code);
+    const stakeAmount = lobby.gameSettings.stake.toString();
+
+    // Initialize staking status
     lobby.stakingStatus = {
-      gameId: gameId,
+      matchId: matchId,
+      gameId: matchId, // Keep for backward compatibility
       totalStake: 0,
       playersStaked: 0,
       playerStakes: {},
-      stakeAmount: lobby.gameSettings.stake,
-      contractAddress: process.env.MULTI_PLAYER_ESCROW_ADDRESS || '0x...'
+      stakeAmount: stakeAmount,
+      contractAddress: process.env.MATCH_ESCROW_CONTRACT_ADDRESS || blockchainService.contractAddress,
+      playerAddresses: playerAddresses,
+      blockchainStatus: 'pending'
     };
 
-    // Notify all players to stake
-    this.io.to(lobby.code).emit("stakeRequired", {
-      gameId: gameId,
-      stakeAmount: lobby.gameSettings.stake,
-      totalPlayers: lobby.players.length,
-      contractAddress: lobby.stakingStatus.contractAddress,
-      message: `Please stake ${lobby.gameSettings.stake} ETH to join this rated battle`
+    console.log(`💰 Staking initialized for lobby ${lobby.code}:`, {
+      playerA: { id: playerAddresses[0].id, name: playerAddresses[0].name, wallet: playerAddresses[0].walletAddress },
+      playerB: { id: playerAddresses[1].id, name: playerAddresses[1].name, wallet: playerAddresses[1].walletAddress },
+      matchId: matchId,
+      stakeAmount: stakeAmount
     });
 
-    // Set a timeout for staking (30 seconds)
+    // First, notify only Player A to create the match
+    const playerA = lobby.players.find(p => p.id === playerAddresses[0].id);
+    if (!playerA) {
+      console.error(`❌ Player A not found in lobby ${lobby.code} when initiating staking`, {
+        playerAId: playerAddresses[0].id,
+        playersInLobby: lobby.players.map(p => ({ id: p.id, name: p.name }))
+      });
+      socket.emit("lobbyError", "Player A not found in lobby");
+      return;
+    }
+    
+    const playerASocket = playerA.socketId ? this.io.sockets.sockets.get(playerA.socketId) : null;
+    if (playerASocket) {
+      console.log(`📢 Notifying Player A (${playerA.name}) to create match and stake in lobby ${lobby.code}`);
+      playerASocket.emit("stakeRequired", {
+        step: "create",
+        matchId: matchId,
+        gameId: matchId,
+        stakeAmount: stakeAmount,
+        totalPlayers: lobby.players.length,
+        contractAddress: lobby.stakingStatus.contractAddress,
+        playerA: playerAddresses[0].walletAddress,
+        playerB: playerAddresses[1].walletAddress,
+        playerAId: playerAddresses[0].id,
+        playerBId: playerAddresses[1].id,
+        message: `Create match and stake ${stakeAmount} GLMR`
+      });
+      console.log(`✅ StakeRequired event sent to Player A (${playerA.name})`);
+    } else {
+      console.error(`❌ Player A socket not found in lobby ${lobby.code}`, {
+        playerAName: playerA.name,
+        playerAId: playerA.id,
+        socketId: playerA.socketId,
+        note: 'Player A may have disconnected'
+      });
+      socket.emit("lobbyError", `Player A (${playerA.name}) is not connected. Please ensure all players are connected.`);
+      return;
+    }
+
+    // Set a timeout for staking (60 seconds)
     lobby.stakingTimeout = setTimeout(() => {
       this.handleStakingTimeout(lobby);
-    }, 30000);
+    }, 60000);
 
-    console.log(`⏰ Staking timeout set for lobby ${lobby.code}, gameId: ${gameId}`);
+    console.log(`⏰ Staking timeout set for lobby ${lobby.code}, matchId: ${matchId}`);
   } catch (error) {
     console.error('Error collecting stakes:', error);
-    socket.emit("lobbyError", "Failed to initiate staking process");
+    socket.emit("lobbyError", "Failed to initiate staking process: " + error.message);
   }
 }
 
 // Handle individual player staking
 async handlePlayerStake(socket, code, playerId, stakeAmount, transactionHash) {
-  const lobby = this.validateLobby(code);
-  if (!lobby) return socket.emit("lobbyError", "Lobby not found");
+  try {
+    const lobby = this.validateLobby(code);
+    if (!lobby) {
+      console.error(`❌ Lobby ${code} not found when processing stake`);
+      return socket.emit("lobbyError", "Lobby not found");
+    }
 
-  if (!lobby.stakingStatus) {
-    return socket.emit("lobbyError", "No staking in progress");
-  }
+    if (!lobby.stakingStatus) {
+      console.error(`❌ No staking in progress for lobby ${code}`);
+      return socket.emit("lobbyError", "No staking in progress");
+    }
 
-  const player = lobby.players.find(p => p.id === playerId);
-  if (!player) {
-    return socket.emit("lobbyError", "Player not found in lobby");
-  }
+    // Check if staking timeout has already passed
+    if (!lobby.stakingTimeout && lobby.stakingStatus.playersStaked < lobby.players.length) {
+      console.error(`❌ Staking period expired for lobby ${code}`);
+      return socket.emit("lobbyError", "Staking period has expired");
+    }
 
-  if (lobby.stakingStatus.playerStakes[playerId]) {
-    return socket.emit("lobbyError", "Already staked");
-  }
+    const player = lobby.players.find(p => String(p.id) === String(playerId));
+    if (!player) {
+      console.error(`❌ Player not found in lobby ${code}:`, {
+        playerId,
+        playerIdsInLobby: lobby.players.map(p => p.id),
+        playerNames: lobby.players.map(p => p.name)
+      });
+      return socket.emit("lobbyError", "Player not found in lobby");
+    }
 
-  if (stakeAmount !== lobby.stakingStatus.stakeAmount) {
-    return socket.emit("lobbyError", `Incorrect stake amount. Expected: ${lobby.stakingStatus.stakeAmount} ETH`);
-  }
+    // Normalize playerId to string for consistent key usage
+    const playerIdStr = String(playerId);
 
-  // Record the stake
-  lobby.stakingStatus.playerStakes[playerId] = {
-    amount: stakeAmount,
-    transactionHash: transactionHash,
-    timestamp: Date.now()
-  };
-  lobby.stakingStatus.playersStaked++;
-  lobby.stakingStatus.totalStake += stakeAmount;
+    if (lobby.stakingStatus.playerStakes[playerIdStr]) {
+      console.log(`⚠️ Player ${player.name} already staked in lobby ${code}`);
+      return socket.emit("lobbyError", "Already staked");
+    }
 
-  console.log(`✅ Player ${player.name} staked ${stakeAmount} ETH in lobby ${code}`);
+    if (!transactionHash || typeof transactionHash !== 'string' || transactionHash.trim() === '') {
+      console.error(`❌ Invalid transaction hash from player ${player.name} in lobby ${code}`);
+      return socket.emit("lobbyError", "Invalid transaction hash");
+    }
 
-  // Notify all players of staking progress
-  this.io.to(code).emit("stakingProgress", {
-    playersStaked: lobby.stakingStatus.playersStaked,
-    totalPlayers: lobby.players.length,
-    totalStake: lobby.stakingStatus.totalStake,
-    stakedPlayer: player.name
-  });
+    if (!stakeAmount || isNaN(Number(stakeAmount)) || Number(stakeAmount) <= 0) {
+      console.error(`❌ Invalid stake amount from player ${player.name} in lobby ${code}: ${stakeAmount}`);
+      return socket.emit("lobbyError", "Invalid stake amount");
+    }
 
-  // Check if all players have staked
-  if (lobby.stakingStatus.playersStaked === lobby.players.length) {
-    this.startGameAfterStaking(lobby);
+    if (Number(stakeAmount) !== Number(lobby.stakingStatus.stakeAmount)) {
+      console.error(`❌ Stake amount mismatch for player ${player.name} in lobby ${code}:`, {
+        received: stakeAmount,
+        expected: lobby.stakingStatus.stakeAmount
+      });
+      return socket.emit("lobbyError", `Incorrect stake amount. Expected: ${lobby.stakingStatus.stakeAmount} GLMR`);
+    }
+
+    // Record the stake (use string key for consistency)
+    lobby.stakingStatus.playerStakes[playerIdStr] = {
+      amount: stakeAmount,
+      transactionHash: transactionHash,
+      timestamp: Date.now()
+    };
+    lobby.stakingStatus.playersStaked++;
+    lobby.stakingStatus.totalStake += Number(stakeAmount);
+
+    console.log(`✅ Player ${player.name} staked ${stakeAmount} GLMR in lobby ${code}`);
+    console.log(`🔍 Staking debug:`, {
+      stakedPlayerId: String(playerId),
+      playerAId: String(lobby.stakingStatus.playerAddresses[0]?.id),
+      isPlayerA: String(playerId) === String(lobby.stakingStatus.playerAddresses[0]?.id),
+      playersStaked: lobby.stakingStatus.playersStaked,
+      totalPlayers: lobby.players.length
+    });
+
+    // Notify all players of staking progress
+    this.io.to(code).emit("stakingProgress", {
+      playersStaked: lobby.stakingStatus.playersStaked,
+      totalPlayers: lobby.players.length,
+      totalStake: lobby.stakingStatus.totalStake,
+      stakedPlayer: player.name
+    });
+
+    // If Player A just staked (created match), notify Player B to join
+    if (String(playerId) === String(lobby.stakingStatus.playerAddresses[0]?.id) && lobby.stakingStatus.playersStaked === 1) {
+      const playerB = lobby.players.find(p => String(p.id) === String(lobby.stakingStatus.playerAddresses[1]?.id));
+      
+      if (!playerB) {
+        console.error(`❌ Player B not found in lobby ${code}`, {
+          playerBId: lobby.stakingStatus.playerAddresses[1]?.id,
+          playersInLobby: lobby.players.map(p => ({ id: p.id, name: p.name }))
+        });
+      } else if (!playerB.socketId) {
+        console.error(`❌ Player B socket not connected in lobby ${code}`, {
+          playerBName: playerB.name,
+          playerBId: playerB.id,
+          note: 'Player B may have disconnected or not yet connected'
+        });
+      } else {
+        const playerBSocket = this.io.sockets.sockets.get(playerB.socketId);
+        
+        if (playerBSocket) {
+          console.log(`📢 Notifying Player B (${playerB.name}) to stake in lobby ${code}`);
+          playerBSocket.emit("stakeRequired", {
+            step: "join",
+            matchId: lobby.stakingStatus.matchId,
+            gameId: lobby.stakingStatus.matchId,
+            stakeAmount: lobby.stakingStatus.stakeAmount,
+            totalPlayers: lobby.players.length,
+            contractAddress: lobby.stakingStatus.contractAddress,
+            playerA: lobby.stakingStatus.playerAddresses[0].walletAddress,
+            playerB: lobby.stakingStatus.playerAddresses[1].walletAddress,
+            playerAId: lobby.stakingStatus.playerAddresses[0].id,
+            playerBId: lobby.stakingStatus.playerAddresses[1].id,
+            message: `Join match and stake ${lobby.stakingStatus.stakeAmount} GLMR`
+          });
+          console.log(`✅ StakeRequired event sent to Player B (${playerB.name})`);
+        } else {
+          console.error(`❌ Player B socket not found in socket manager for lobby ${code}`, {
+            playerBName: playerB.name,
+            playerBId: playerB.id,
+            socketId: playerB.socketId,
+            note: 'Socket may have disconnected'
+          });
+        }
+      }
+    }
+
+    // Check if all players have staked
+    if (lobby.stakingStatus.playersStaked === lobby.players.length) {
+      this.startGameAfterStaking(lobby);
+    }
+  } catch (error) {
+    console.error(`❌ Error processing stake for player ${playerId} in lobby ${code}:`, error);
+    socket.emit("lobbyError", `Failed to process stake: ${error.message || 'Unknown error'}`);
   }
 }
 
@@ -354,7 +525,50 @@ startGameAfterStaking(lobby) {
 
   lobby.status = "starting";
   
-  // Use GameManager to start the game
+  // Format stakingInfo with transaction hashes for Match model
+  const stakingInfo = {
+    matchId: lobby.stakingStatus.matchId,
+    gameId: lobby.stakingStatus.matchId, // Keep for backward compatibility
+    totalStake: lobby.stakingStatus.totalStake,
+    stakeAmount: lobby.stakingStatus.stakeAmount,
+    contractAddress: lobby.stakingStatus.contractAddress,
+    blockchainStatus: lobby.stakingStatus.blockchainStatus || 'joined',
+    // Extract transaction hashes from playerStakes
+    createMatchTxHash: null,
+    joinMatchTxHash: null,
+    stakes: []
+  };
+
+  // Get transaction hashes from player stakes
+  const playerAId = String(lobby.stakingStatus.playerAddresses[0]?.id);
+  const playerBId = String(lobby.stakingStatus.playerAddresses[1]?.id);
+  
+  if (lobby.stakingStatus.playerStakes[playerAId]) {
+    stakingInfo.createMatchTxHash = lobby.stakingStatus.playerStakes[playerAId].transactionHash;
+    stakingInfo.stakes.push({
+      playerId: lobby.stakingStatus.playerAddresses[0].id,
+      walletAddress: lobby.stakingStatus.playerAddresses[0].walletAddress,
+      amount: lobby.stakingStatus.playerStakes[playerAId].amount,
+      transactionHash: lobby.stakingStatus.playerStakes[playerAId].transactionHash,
+      deposited: true
+    });
+  }
+  
+  if (lobby.stakingStatus.playerStakes[playerBId]) {
+    stakingInfo.joinMatchTxHash = lobby.stakingStatus.playerStakes[playerBId].transactionHash;
+    stakingInfo.stakes.push({
+      playerId: lobby.stakingStatus.playerAddresses[1].id,
+      walletAddress: lobby.stakingStatus.playerAddresses[1].walletAddress,
+      amount: lobby.stakingStatus.playerStakes[playerBId].amount,
+      transactionHash: lobby.stakingStatus.playerStakes[playerBId].transactionHash,
+      deposited: true
+    });
+  }
+
+  // Store formatted stakingInfo in lobby for gameManager
+  lobby.stakingInfo = stakingInfo;
+  
+  // Use GameManager to start the game (passes stakingInfo via lobby)
   this.gameManager.startGame(lobby);
 
   // Notify players that game is starting
@@ -362,7 +576,32 @@ startGameAfterStaking(lobby) {
     lobbyCode: lobby.code,
     settings: lobby.gameSettings,
     players: lobby.players,
-    stakingInfo: lobby.stakingStatus
+    stakingInfo: stakingInfo
+  });
+
+  // Clean up lobby after game starts
+  setTimeout(() => {
+    if (this.lobbies.has(lobby.code)) {
+      this.lobbies.delete(lobby.code);
+      console.log(`🗑️ Lobby ${lobby.code} cleaned up after game start`);
+    }
+  }, 10000);
+}
+
+// Start game without blockchain staking (backward compatibility)
+startGameWithoutBlockchain(lobby) {
+  console.log(`🚀 Starting game without blockchain staking for lobby ${lobby.code}`);
+  
+  lobby.status = "starting";
+  
+  // Use GameManager to start the game (without stakingInfo)
+  this.gameManager.startGame(lobby);
+
+  // Notify players that game is starting
+  this.io.to(lobby.code).emit("gameStarting", {
+    lobbyCode: lobby.code,
+    settings: lobby.gameSettings,
+    players: lobby.players
   });
 
   // Clean up lobby after game starts
@@ -378,12 +617,21 @@ startGameAfterStaking(lobby) {
 handleStakingTimeout(lobby) {
   console.log(`⏰ Staking timeout reached for lobby ${lobby.code}`);
   
-  const stakedPlayers = Object.keys(lobby.stakingStatus.playerStakes);
-  const unstakedPlayers = lobby.players.filter(p => !stakedPlayers.includes(p.id));
+  if (!lobby.stakingStatus) {
+    console.log(`⚠️ No staking status found for lobby ${lobby.code}`);
+    return;
+  }
+  
+  // Get staked player IDs as strings for comparison
+  const stakedPlayerIds = Object.keys(lobby.stakingStatus.playerStakes).map(id => String(id));
+  
+  // Filter out players who haven't staked (compare as strings)
+  const unstakedPlayers = lobby.players.filter(p => !stakedPlayerIds.includes(String(p.id)));
   
   if (unstakedPlayers.length > 0) {
-    // Remove unstaked players
-    lobby.players = lobby.players.filter(p => stakedPlayers.includes(p.id));
+    console.log(`⚠️ Removing ${unstakedPlayers.length} unstaked players from lobby ${lobby.code}`);
+    // Keep only staked players
+    lobby.players = lobby.players.filter(p => stakedPlayerIds.includes(String(p.id)));
     
     // Notify about removed players
     this.io.to(lobby.code).emit("playersRemoved", {
@@ -393,10 +641,14 @@ handleStakingTimeout(lobby) {
   }
 
   if (lobby.players.length >= 2) {
+    console.log(`✅ ${lobby.players.length} players staked, starting game`);
     this.startGameAfterStaking(lobby);
   } else {
+    console.log(`⚠️ Not enough players staked (${lobby.players.length}). Need at least 2.`);
     this.io.to(lobby.code).emit("lobbyError", "Not enough players staked to start the game");
     lobby.status = "waiting";
+    // Clear staking status to allow retry
+    lobby.stakingStatus = null;
   }
 }
 

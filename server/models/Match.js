@@ -93,14 +93,48 @@ const MatchSchema = new mongoose.Schema({
   },
   stakingInfo: {
     totalStake: Number,
+    stakeAmount: Number, // Individual stake amount per player
+    matchId: {
+      type: String, // Blockchain match ID (bytes32 as hex string)
+      sparse: true // Only index when present
+    },
+    contractAddress: String, // MatchEscrow contract address
     stakes: [{
       playerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
+      walletAddress: String, // Player's wallet address
       amount: Number,
-      transactionHash: String
-    }]
+      transactionHash: String,
+      deposited: {
+        type: Boolean,
+        default: false
+      }
+    }],
+    createMatchTxHash: String, // Transaction hash when match was created
+    joinMatchTxHash: String, // Transaction hash when playerB joined
+    blockchainStatus: {
+      type: String,
+      default: 'pending',
+      required: false, // Allow null/undefined for friendly matches
+      // Custom validator - enum check without Mongoose enum (which rejects null)
+      validate: {
+        validator: function(value) {
+          // If value is null or undefined, it's valid (for friendly matches)
+          if (value === null || value === undefined) return true;
+          // Otherwise, must be one of the valid enum values
+          return ['pending', 'created', 'joined', 'settled', 'canceled'].includes(value);
+        },
+        message: 'blockchainStatus must be null/undefined or one of: pending, created, joined, settled, canceled'
+      }
+    }
+  },
+  blockchainResult: {
+    txHash: String, // Transaction hash for result submission
+    blockNumber: Number,
+    serverNonce: Number,
+    submittedAt: Date
   },
   finalRankings: [{
     rank: Number,
@@ -117,6 +151,9 @@ const MatchSchema = new mongoose.Schema({
 MatchSchema.index({ 'players.playerId': 1 });
 MatchSchema.index({ 'startedAt': -1 });
 MatchSchema.index({ 'matchType': 1, 'startedAt': -1 });
+// Sparse unique index on stakingInfo.matchId (only indexes non-null values)
+// This allows multiple friendly matches (with null matchId) without conflicts
+MatchSchema.index({ 'stakingInfo.matchId': 1 }, { unique: true, sparse: true });
 
 // Clean up references when converting to JSON
 MatchSchema.set('toJSON', {

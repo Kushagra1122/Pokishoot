@@ -1,6 +1,7 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { Web3Provider } from './context/Web3Context';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -18,23 +19,25 @@ import NotFound from './pages/NotFound';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/get-first-pokemon" element={<GetFirstPokemon />} />
-          <Route path="/select-pokemon" element={<SelectPokemon />} />
-          <Route path="/battle" element={<Battle />} />
-          <Route path="/battle/lobby/:code" element={<Waiting />} />
-          <Route path="/market-place" element={<MarketPlace />} />
-          <Route path="/battle/game/:code" element={<Game />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AuthProvider>
+      <Web3Provider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/get-first-pokemon" element={<GetFirstPokemon />} />
+            <Route path="/select-pokemon" element={<SelectPokemon />} />
+            <Route path="/battle" element={<Battle />} />
+            <Route path="/battle/lobby/:code" element={<Waiting />} />
+            <Route path="/market-place" element={<MarketPlace />} />
+            <Route path="/battle/game/:code" element={<Game />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </Web3Provider>
     </BrowserRouter>
   );
 }

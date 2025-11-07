@@ -51,6 +51,16 @@ const Game = () => {
       setShowGameOver(true);
     });
 
+    gameSocket.on('blockchainResult', (data) => {
+      setGameState((prev) => ({
+        ...prev,
+        result: {
+          ...prev.result,
+          blockchainResult: data.blockchainResult
+        }
+      }));
+    });
+
     gameSocket.on('gameError', (error) => {
       setMessages((prev) => [
         ...prev,

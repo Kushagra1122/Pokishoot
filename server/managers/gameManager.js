@@ -31,7 +31,7 @@ class GameManager {
     console.log(`🎯 Game started for lobby ${code}`);
     console.log(`📍 Spawned ${players.length} players at valid positions`);
     if (stakingInfo) {
-      console.log(`💰 Total stake pool: ${stakingInfo.totalStake} ETH`);
+      console.log(`💰 Total stake pool: ${stakingInfo.totalStake} GLMR`);
     }
 
     // Send game state to each player individually
@@ -494,6 +494,26 @@ class GameManager {
         };
       });
 
+      // Prepare staking info - only for rated matches with valid matchId
+      let stakingInfoData = null;
+      if (matchType === 'rated' && game.stakingInfo) {
+        // Only include stakingInfo if matchId exists (blockchain match was created)
+        if (game.stakingInfo.matchId) {
+          stakingInfoData = {
+            ...game.stakingInfo,
+            blockchainStatus: game.stakingInfo.blockchainStatus || 'pending'
+          };
+          // Ensure matchId is a valid string (not null/undefined)
+          if (!stakingInfoData.matchId || stakingInfoData.matchId === 'null' || stakingInfoData.matchId === 'undefined') {
+            console.warn(`⚠️ Invalid matchId for rated match ${game.code}, excluding stakingInfo`);
+            stakingInfoData = null; // Don't save invalid staking info
+          }
+        } else {
+          console.log(`ℹ️ Rated match ${game.code} has no blockchain matchId, skipping stakingInfo`);
+        }
+      }
+      // For friendly matches, stakingInfoData remains null (not included in document)
+
       // Create match data
       const matchData = {
         gameCode: game.code,
@@ -513,16 +533,234 @@ class GameManager {
         startedAt: new Date(game.createdAt),
         endedAt: new Date(),
         status: 'completed',
-        stakingInfo: game.stakingInfo || null,
+        stakingInfo: stakingInfoData,
         finalRankings: finalRankings
       };
 
       // Save to database
-      await matchController.saveMatchResult(matchData);
+      const savedMatch = await matchController.saveMatchResult(matchData);
       console.log(`✅ Match result saved for game ${game.code}`);
+
+      // Submit to blockchain if it's a rated match with staking and blockchain is ready
+      if (matchType === 'rated' && game.stakingInfo && game.stakingInfo.matchId) {
+        const blockchainService = require('../services/blockchainService');
+        if (blockchainService.isReady()) {
+          try {
+            await this.submitMatchResultToBlockchain(game, savedMatch, rankedPlayers);
+          } catch (blockchainError) {
+            console.error('❌ Error submitting match result to blockchain:', blockchainError);
+            // Continue - don't block the match result save
+          }
+        } else {
+          console.log('ℹ️  Blockchain service not ready, skipping blockchain result submission');
+        }
+      }
     } catch (error) {
       console.error('❌ Error saving match result:', error);
       // Don't throw - we don't want to block game cleanup
+    }
+  }
+
+  /**
+   * Submit match result to blockchain
+   */
+  async submitMatchResultToBlockchain(game, savedMatch, rankedPlayers) {
+    const blockchainService = require('../services/blockchainService');
+    
+    if (!blockchainService.isReady()) {
+      console.log('ℹ️  Blockchain service not ready, skipping blockchain submission');
+      return;
+    }
+
+    // Only submit if match was created on blockchain
+    if (!game.stakingInfo?.matchId) {
+      console.log('ℹ️  Match was not created on blockchain, skipping submission');
+      return;
+    }
+
+    // Get wallet addresses from database (not from blockchain)
+    const User = require('../models/User');
+    
+    // Get winner player
+    const winner = game.getPlayer(game.winner);
+    if (!winner) {
+      console.log('ℹ️  Winner not found in game, skipping blockchain submission');
+      return;
+    }
+
+    // Get player addresses from database
+    const playerA = game.players[0];
+    const playerB = game.players[1];
+    
+    // Fetch wallet addresses from database
+    const userA = await User.findById(playerA.id);
+    const userB = await User.findById(playerB.id);
+    const winnerUser = await User.findById(winner.id);
+    
+    if (!userA?.walletAddress || !userB?.walletAddress || !winnerUser?.walletAddress) {
+      console.log('ℹ️  Players missing wallet addresses in database, skipping blockchain submission');
+      return;
+    }
+
+    const dbPlayerAAddress = userA.walletAddress.toLowerCase();
+    const dbPlayerBAddress = userB.walletAddress.toLowerCase();
+    const dbWinnerAddress = winnerUser.walletAddress.toLowerCase();
+
+    // Determine winner address from database
+    let winnerAddress;
+    if (winner.id === playerA.id) {
+      winnerAddress = dbPlayerAAddress;
+      console.log(`🏆 Winner is Player A (from DB): ${winnerAddress}`);
+    } else if (winner.id === playerB.id) {
+      winnerAddress = dbPlayerBAddress;
+      console.log(`🏆 Winner is Player B (from DB): ${winnerAddress}`);
+    } else {
+      // Fallback: use winner's wallet address directly
+      winnerAddress = dbWinnerAddress;
+      console.log(`🏆 Winner address from DB: ${winnerAddress}`);
+    }
+
+    // Verify the match exists on blockchain and get contract addresses
+    const matchOnChain = await blockchainService.getMatch(game.code);
+    if (!matchOnChain) {
+      console.log('❌ Match not found on blockchain, cannot submit result');
+      return;
+    }
+
+    const contractPlayerA = matchOnChain.playerA.toLowerCase();
+    const contractPlayerB = matchOnChain.playerB.toLowerCase();
+
+    // Determine which contract address corresponds to the winner
+    // Map database addresses to contract addresses to find the correct winner address
+    let contractWinnerAddress;
+    
+    if (winner.id === playerA.id) {
+      // Winner is Player A - use contract Player A address
+      if (dbPlayerAAddress === contractPlayerA) {
+        contractWinnerAddress = contractPlayerA;
+        console.log(`✅ Winner is Player A: ${contractWinnerAddress} (matches contract)`);
+      } else {
+        // Database address doesn't match contract - use contract address
+        contractWinnerAddress = contractPlayerA;
+        console.warn(`⚠️  Database Player A (${dbPlayerAAddress}) doesn't match contract (${contractPlayerA})`);
+        console.warn(`   Using contract address ${contractWinnerAddress} for payout`);
+      }
+    } else if (winner.id === playerB.id) {
+      // Winner is Player B - use contract Player B address
+      if (dbPlayerBAddress === contractPlayerB) {
+        contractWinnerAddress = contractPlayerB;
+        console.log(`✅ Winner is Player B: ${contractWinnerAddress} (matches contract)`);
+      } else {
+        // Database address doesn't match contract - use contract address
+        contractWinnerAddress = contractPlayerB;
+        console.warn(`⚠️  Database Player B (${dbPlayerBAddress}) doesn't match contract (${contractPlayerB})`);
+        console.warn(`   Using contract address ${contractWinnerAddress} for payout`);
+      }
+    } else {
+      // Fallback: try to match by database address
+      if (dbWinnerAddress === contractPlayerA) {
+        contractWinnerAddress = contractPlayerA;
+        console.log(`✅ Winner address matched to contract Player A: ${contractWinnerAddress}`);
+      } else if (dbWinnerAddress === contractPlayerB) {
+        contractWinnerAddress = contractPlayerB;
+        console.log(`✅ Winner address matched to contract Player B: ${contractWinnerAddress}`);
+      } else {
+        throw new Error(
+          `Cannot determine winner address. ` +
+          `Database winner: ${dbWinnerAddress}, ` +
+          `Contract addresses: A=${contractPlayerA}, B=${contractPlayerB}`
+        );
+      }
+    }
+
+    winnerAddress = contractWinnerAddress;
+
+    // Ensure scores are non-negative for blockchain (uint256 cannot be negative)
+    const scoreA = Math.max(0, Math.floor(playerA.stats.score || 0));
+    const scoreB = Math.max(0, Math.floor(playerB.stats.score || 0));
+
+    try {
+      console.log(`📝 Submitting match result to blockchain for game ${game.code}...`);
+      console.log(`📊 Scores: Player A (${contractPlayerA}): ${scoreA}, Player B (${contractPlayerB}): ${scoreB}`);
+      console.log(`🎯 Winner Address: ${winnerAddress}`);
+      console.log(`💰 Payout Amount: ${game.stakingInfo.stakeAmount * 2} GLMR`);
+      
+      const result = await blockchainService.submitMatchResult(
+        game.code,
+        winnerAddress,
+        scoreA,
+        scoreB,
+        contractPlayerA, // Use contract addresses for consistency
+        contractPlayerB
+      );
+
+      // Update match in database with blockchain result
+      const Match = require('../models/Match');
+      await Match.findByIdAndUpdate(savedMatch._id, {
+        'blockchainResult.txHash': result.txHash,
+        'blockchainResult.blockNumber': result.blockNumber,
+        'blockchainResult.serverNonce': result.serverNonce,
+        'blockchainResult.submittedAt': new Date(),
+        'stakingInfo.blockchainStatus': 'settled'
+      });
+
+      console.log(`✅ Match result submitted to blockchain: ${result.txHash}`);
+      console.log(`💰 Payout: ${game.stakingInfo.stakeAmount * 2} GLMR sent to winner: ${winnerAddress}`);
+      
+      // Verify match is settled on blockchain
+      try {
+        const matchOnChain = await blockchainService.getMatch(game.code);
+        if (matchOnChain && matchOnChain.settled) {
+          console.log(`✅ Match verified as settled on blockchain. Winner received payout.`);
+          
+          // Emit blockchain result update with settlement info
+          this.io.to(game.code).emit('blockchainResult', {
+            gameCode: game.code,
+            blockchainResult: {
+              txHash: result.txHash,
+              blockNumber: result.blockNumber,
+              serverNonce: result.serverNonce,
+              submittedAt: new Date(),
+              settled: true,
+              payoutAmount: game.stakingInfo.stakeAmount * 2,
+              winnerAddress: winnerAddress
+            }
+          });
+        } else {
+          console.log(`⚠️  Match settlement not yet confirmed on blockchain`);
+          // Still emit result but mark as pending
+          this.io.to(game.code).emit('blockchainResult', {
+            gameCode: game.code,
+            blockchainResult: {
+              txHash: result.txHash,
+              blockNumber: result.blockNumber,
+              serverNonce: result.serverNonce,
+              submittedAt: new Date(),
+              settled: false,
+              payoutAmount: game.stakingInfo.stakeAmount * 2,
+              winnerAddress: winnerAddress
+            }
+          });
+        }
+      } catch (verifyError) {
+        console.error('⚠️  Could not verify match settlement:', verifyError);
+        // Still emit result
+        this.io.to(game.code).emit('blockchainResult', {
+          gameCode: game.code,
+          blockchainResult: {
+            txHash: result.txHash,
+            blockNumber: result.blockNumber,
+            serverNonce: result.serverNonce,
+            submittedAt: new Date(),
+            settled: null, // Unknown status
+            payoutAmount: game.stakingInfo.stakeAmount * 2,
+            winnerAddress: winnerAddress
+          }
+        });
+      }
+    } catch (error) {
+      console.error('❌ Failed to submit match result to blockchain:', error);
+      throw error;
     }
   }
 

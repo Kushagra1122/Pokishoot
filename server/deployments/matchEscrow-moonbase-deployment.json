@@ -1,0 +1,9 @@
+{
+  "network": "moonbase",
+  "chainId": "1287",
+  "contractAddress": "0x293598a274c940465a06Ff2Aef8142F097e6dD80",
+  "matchEscrowAddress": "0x293598a274c940465a06Ff2Aef8142F097e6dD80",
+  "deployer": "0x3226715350135b5e26759E268E40D393c70a0aca",
+  "timestamp": "2025-11-01T05:34:32.180Z",
+  "blockNumber": "14158015"
+}
