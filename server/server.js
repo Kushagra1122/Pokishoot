@@ -55,12 +55,7 @@ const lobbyRoutes = require('./routes/lobbyRoutes');
 const matchRoutes = require('./routes/matchRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 
-// Keep old routes for backward compatibility
-app.use('/api', authRoutes);
-app.use('/api', pokemonRoutes);
-app.use('/api', lobbyRoutes);
-
-// New organized routes
+// Organized routes
 app.use('/api/auth', authRoutes);
 app.use('/api/pokemon', pokemonRoutes);
 app.use('/api/lobby', lobbyRoutes);

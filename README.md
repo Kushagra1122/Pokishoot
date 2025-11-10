@@ -140,7 +140,7 @@ Create `.env` files in each directory:
 ```env
 VITE_API_URL=http://localhost:4000
 VITE_NFT_CONTRACT_ADDRESS=your_nft_contract_address
-VITE_MATCH_ESCROW_ADDRESS=your_escrow_contract_address
+VITE_MATCH_ESCROW_CONTRACT_ADDRESS=your_escrow_contract_address
 VITE_RPC_URL=https://rpc.api.moonbase.moonbeam.network
 ```
 
@@ -150,8 +150,8 @@ PORT=4000
 MONGO_URI=mongodb://127.0.0.1:27017/pokewars
 JWT_SECRET=your_jwt_secret_key_here
 NFT_CONTRACT_ADDRESS=your_nft_contract_address
-MATCH_ESCROW_ADDRESS=your_escrow_contract_address
-RPC_URL=https://rpc.api.moonbase.moonbeam.network
+MATCH_ESCROW_CONTRACT_ADDRESS=your_escrow_contract_address
+MOONBASE_RPC_URL=https://rpc.api.moonbase.moonbeam.network
 PRIVATE_KEY=your_server_private_key
 ```
 
@@ -160,7 +160,7 @@ PRIVATE_KEY=your_server_private_key
 PRIVATE_KEY=your_deployment_private_key
 MOONBASE_RPC_URL=https://rpc.api.moonbase.moonbeam.network
 NFT_CONTRACT_ADDRESS=  # Set after deployment
-MATCH_ESCROW_ADDRESS=  # Set after deployment
+MATCH_ESCROW_CONTRACT_ADDRESS=  # Set after deployment
 ```
 
 ### Smart Contract Deployment

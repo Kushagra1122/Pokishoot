@@ -129,6 +129,10 @@ class BlockchainService {
    * Note: This is typically called from frontend, but server can prepare data
    */
   async prepareJoinMatchData(gameCode, stakeAmount) {
+    if (!this.contract) {
+      throw new Error('MatchEscrow contract not initialized');
+    }
+
     const matchId = this.generateMatchId(gameCode);
     const stakeWei = ethers.parseEther(stakeAmount);
 
