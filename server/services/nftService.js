@@ -1,6 +1,7 @@
 const { ethers } = require('ethers');
 const fs = require('fs');
 const path = require('path');
+const ipfsService = require('./ipfsService');
 
 // Contract ABI - minimal for minting
 const POKEMON_NFT_ABI = [
@@ -87,7 +88,7 @@ class NFTService {
 
     try {
       // Generate token URI (can be IPFS or server endpoint)
-      const tokenURI = this.generateTokenURI(pokemonData);
+      const tokenURI = await this.generateTokenURI(pokemonData);
 
       // Call mint function
       const tx = await this.contract.mintPokemon(
@@ -137,11 +138,19 @@ class NFTService {
   /**
    * Generate token URI for metadata
    * @param {Object} pokemonData - Pokemon data
-   * @returns {string} Token URI
+   * @returns {Promise<string>} Token URI (IPFS or fallback)
    */
-  generateTokenURI(pokemonData) {
-    // For now, return a server endpoint
-    // In production, this should be IPFS or decentralized storage
+  async generateTokenURI(pokemonData) {
+    // Try IPFS first, fallback to server endpoint
+    if (ipfsService.isAvailable()) {
+      try {
+        return await ipfsService.generateTokenURI(pokemonData);
+      } catch (error) {
+        console.warn('⚠️  IPFS upload failed, using fallback:', error.message);
+      }
+    }
+    
+    // Fallback to server endpoint
     const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
     return `${baseUrl}/api/nft/metadata/${pokemonData._id}`;
   }

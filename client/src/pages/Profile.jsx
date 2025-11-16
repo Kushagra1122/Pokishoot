@@ -54,15 +54,19 @@ const Profile = () => {
     });
   };
 
+  // Calculate losses from matches played and matches won
+  const matchesWon = user?.stats?.matchesWon || 0;
+  const matchesPlayed = user?.stats?.matchesPlayed || 0;
+  const losses = matchesPlayed - matchesWon;
+  const winRate = matchesPlayed > 0 ? ((matchesWon / matchesPlayed) * 100).toFixed(1) : 0;
+
   const stats = [
-    { label: 'Wins', value: user?.stats?.wins || 0, color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: Trophy },
-    { label: 'Losses', value: user?.stats?.losses || 0, color: 'text-rose-400', bg: 'bg-rose-500/20', icon: Heart },
-    { label: 'Draws', value: user?.stats?.draws || 0, color: 'text-blue-400', bg: 'bg-blue-500/20', icon: Shield },
+    { label: 'Wins', value: matchesWon, color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: Trophy },
+    { label: 'Losses', value: losses, color: 'text-rose-400', bg: 'bg-rose-500/20', icon: Heart },
+    { label: 'Matches', value: matchesPlayed, color: 'text-blue-400', bg: 'bg-blue-500/20', icon: Shield },
     { 
       label: 'Win Rate', 
-      value: user?.stats?.wins && user?.stats?.losses 
-        ? `${((user.stats.wins / (user.stats.wins + user.stats.losses)) * 100).toFixed(1)}%`
-        : '0%', 
+      value: `${winRate}%`, 
       color: 'text-amber-400', 
       bg: 'bg-amber-500/20', 
       icon: Target 
@@ -110,10 +114,10 @@ const Profile = () => {
       <div className="relative z-10 px-6 py-8 max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight" style={{
+          <h1 className="text-5xl md:text-7xl font-black mb-4 leading-tight text-glow" style={{
             fontFamily: 'monospace',
             color: '#fbbf24',
-            textShadow: '3px 3px 0 #dc2626, 5px 5px 0 #000'
+            textShadow: '3px 3px 0 #dc2626, 5px 5px 0 #000, 0 0 30px rgba(251, 191, 36, 0.5)'
           }}>
             TRAINER PROFILE
           </h1>
@@ -123,15 +127,15 @@ const Profile = () => {
         </div>
 
         {/* Profile Card */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Left Column - Profile Info */}
           <div className="lg:col-span-1">
-            <div className="bg-gray-900 border-4 border-yellow-400 p-8">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-sm border-4 border-yellow-400 p-8 game-card card-elevated animate-slide-in" style={{ boxShadow: '0 10px 0 #92400e, 0 0 35px rgba(251, 191, 36, 0.4)' }}>
               {/* Avatar & Basic Info */}
               <div className="text-center mb-8">
-                <div className="w-32 h-32 bg-yellow-400 flex items-center justify-center text-4xl font-bold text-black mx-auto mb-6 border-4 border-yellow-600" style={{
+                <div className="w-32 h-32 bg-yellow-400 flex items-center justify-center text-4xl font-bold text-black mx-auto mb-6 border-4 border-yellow-600 animate-float" style={{
                   clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                  boxShadow: '0 8px 0 #ca8a04',
+                  boxShadow: '0 8px 0 #ca8a04, 0 0 30px rgba(251, 191, 36, 0.5)',
                   fontFamily: 'monospace'
                 }}>
                   {user?.name?.charAt(0)?.toUpperCase() || 'T'}
@@ -190,6 +194,34 @@ const Profile = () => {
                 </div>
               )}
 
+              {/* Ranking Info */}
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-bold text-yellow-400 flex items-center gap-2" style={{ fontFamily: 'monospace' }}>
+                  <Trophy className="w-5 h-5" strokeWidth={3} />
+                  RANKING
+                </h3>
+                <div className="space-y-3">
+                  <div className="p-4 bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border-2 border-yellow-400 text-center">
+                    <div className="text-gray-400 text-xs font-bold mb-1" style={{ fontFamily: 'monospace' }}>ELO RATING</div>
+                    <div className="text-3xl font-bold text-yellow-400" style={{ fontFamily: 'monospace' }}>
+                      {user?.ranking?.elo || 1000}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-black border-2 border-gray-700">
+                    <span className="text-gray-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>TIER</span>
+                    <span className="text-yellow-400 text-sm font-bold uppercase" style={{ fontFamily: 'monospace' }}>
+                      {user?.ranking?.tier || 'Bronze'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-black border-2 border-gray-700">
+                    <span className="text-gray-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>RANK</span>
+                    <span className="text-yellow-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>
+                      {user?.ranking?.rank || 'Unranked'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Account Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-yellow-400 flex items-center gap-2" style={{ fontFamily: 'monospace' }}>
@@ -200,7 +232,7 @@ const Profile = () => {
                   <div className="flex justify-between items-center p-3 bg-black border-2 border-gray-700">
                     <span className="text-gray-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>WALLET</span>
                     <span className="text-yellow-400 font-mono text-sm font-bold" style={{ fontFamily: 'monospace' }}>
-                      {user?.address ? `${user.address.slice(0, 6)}...${user.address.slice(-4)}` : 'NOT CONNECTED'}
+                      {user?.walletAddress ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}` : 'NOT CONNECTED'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-black border-2 border-gray-700">
@@ -208,8 +240,8 @@ const Profile = () => {
                     <span className="text-white text-sm font-bold" style={{ fontFamily: 'monospace' }}>{formatDate(user?.createdAt)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-black border-2 border-gray-700">
-                    <span className="text-gray-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>LAST LOGIN</span>
-                    <span className="text-white text-sm font-bold" style={{ fontFamily: 'monospace' }}>{formatDate(user?.lastLogin)}</span>
+                    <span className="text-gray-400 text-sm font-bold" style={{ fontFamily: 'monospace' }}>LAST ACTIVE</span>
+                    <span className="text-white text-sm font-bold" style={{ fontFamily: 'monospace' }}>{formatDate(user?.lastActive)}</span>
                   </div>
                 </div>
               </div>
@@ -218,17 +250,25 @@ const Profile = () => {
 
           {/* Right Column - Stats & Activity */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Battle Stats */}
-            <div className="bg-gray-900 border-4 border-blue-500 p-8">
+              {/* Battle Stats */}
+              <div className="bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-sm border-4 border-blue-500 p-8 game-card card-elevated animate-slide-in" style={{ boxShadow: '0 10px 0 #1e40af, 0 0 35px rgba(59, 130, 246, 0.4)', animationDelay: '0.1s' }}>
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3" style={{ fontFamily: 'monospace' }}>
-                <Trophy className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <Trophy className="w-6 h-6 text-yellow-400 animate-float flex-shrink-0" strokeWidth={3} />
                 BATTLE STATISTICS
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map(({ label, value, color, bg, icon: Icon }) => (
-                  <div key={label} className={`${bg} border-2 border-gray-700 p-6 text-center`} style={{ fontFamily: 'monospace' }}>
-                    <Icon className={`w-8 h-8 ${color} mx-auto mb-3`} strokeWidth={3} />
-                    <div className={`text-2xl font-bold ${color} mb-1`}>{value}</div>
+                {stats.map(({ label, value, color, bg, icon: Icon }, index) => (
+                  <div 
+                    key={label} 
+                    className={`${bg} border-2 border-gray-700 p-6 text-center game-card animate-slide-in hover:scale-105 transition-all duration-300`} 
+                    style={{ 
+                      fontFamily: 'monospace',
+                      animationDelay: `${index * 0.1}s`,
+                      boxShadow: '0 4px 0 rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <Icon className={`w-8 h-8 ${color} mx-auto mb-3 animate-float`} strokeWidth={3} style={{ animationDelay: `${index * 0.1}s` }} />
+                    <div className={`text-2xl font-bold ${color} mb-1 animate-battle-pulse`} style={{ animationDelay: `${index * 0.1}s` }}>{value}</div>
                     <div className="text-gray-400 text-sm font-bold">{label.toUpperCase()}</div>
                   </div>
                 ))}
@@ -236,9 +276,9 @@ const Profile = () => {
             </div>
 
             {/* Pokémon Collection */}
-            <div className="bg-gray-900 border-4 border-green-500 p-8">
+            <div className="bg-gray-900 border-4 border-green-500 p-8 game-card animate-slide-in" style={{ boxShadow: '0 8px 0 #166534, 0 0 25px rgba(34, 197, 94, 0.3)', animationDelay: '0.2s' }}>
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3" style={{ fontFamily: 'monospace' }}>
-                <Star className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <Star className="w-6 h-6 text-yellow-400 animate-float" strokeWidth={3} />
                 POKEMON COLLECTION
               </h3>
               <div className="grid md:grid-cols-2 gap-6">
@@ -270,9 +310,9 @@ const Profile = () => {
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-gray-900 border-4 border-purple-500 p-8">
+            <div className="bg-gray-900 border-4 border-purple-500 p-8 game-card animate-slide-in" style={{ boxShadow: '0 8px 0 #7c3aed, 0 0 25px rgba(168, 85, 247, 0.3)', animationDelay: '0.3s' }}>
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3" style={{ fontFamily: 'monospace' }}>
-                <Calendar className="w-6 h-6 text-yellow-400" strokeWidth={3} />
+                <Calendar className="w-6 h-6 text-yellow-400 animate-float" strokeWidth={3} />
                 RECENT ACTIVITY
               </h3>
               <div className="space-y-3">

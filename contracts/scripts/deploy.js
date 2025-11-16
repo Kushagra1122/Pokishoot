@@ -11,7 +11,7 @@ async function main() {
 
   // Get account balance
   const balance = await hre.ethers.provider.getBalance(deployer.address);
-  console.log("💰 Account balance:", hre.ethers.formatEther(balance), "ETH/DEV");
+  console.log("💰 Account balance:", hre.ethers.formatEther(balance), "GLMR/DEV");
 
   // Deploy the contract
   const PokemonNFT = await hre.ethers.getContractFactory("PokemonNFT");

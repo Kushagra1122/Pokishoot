@@ -1,8 +1,8 @@
 {
   "network": "moonbase",
   "chainId": 1287,
-  "contractAddress": "0x8dD39058e5185f484A49ea8c23744E2B213Da2A0",
+  "contractAddress": "0xB98a9700843018494Ab76F7316A2A1E901A9e831",
   "deployer": "0x3226715350135b5e26759E268E40D393c70a0aca",
-  "timestamp": "2025-11-10T04:00:07.586Z",
-  "blockNumber": 14226355
+  "timestamp": "2025-11-14T06:49:14.432Z",
+  "blockNumber": 14254185
 }

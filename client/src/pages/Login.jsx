@@ -55,15 +55,13 @@ export default function Login() {
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left Side - Branding */}
             <div className="text-center lg:text-left space-y-6">
-              <h1 className="text-6xl md:text-8xl font-black leading-tight" style={{
-                fontFamily: 'monospace',
-                color: '#fbbf24',
-                textShadow: '4px 4px 0 #dc2626, 6px 6px 0 #000'
-              }}>
-                POKE
-                <br />
-                <span className="text-red-500">SHOOT</span>
-              </h1>
+              <div className="flex justify-center lg:justify-start">
+                <img 
+                  src="/logo.png" 
+                  alt="PokeWars" 
+                  className="h-32 md:h-40 lg:h-48 object-contain"
+                />
+              </div>
               
               <div className="space-y-3">
                 {features.map(({ icon: Icon, text }) => {

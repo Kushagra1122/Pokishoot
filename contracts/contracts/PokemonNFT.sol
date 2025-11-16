@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title PokemonNFT
@@ -53,7 +53,7 @@ contract PokemonNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         string[] names
     );
 
-    constructor() ERC721("PokemonNFT", "POKE") Ownable(msg.sender) {
+    constructor() ERC721("PokemonNFT", "POKE") Ownable() {
         _tokenIdCounter = 1; // Start from token ID 1
     }
 

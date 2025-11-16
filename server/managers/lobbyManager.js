@@ -265,6 +265,12 @@ startGame(socket, code) {
 async collectStakesFromAllPlayers(lobby, socket) {
   console.log(`💰 Collecting stakes from ${lobby.players.length} players for rated game`);
   
+  // Prevent multiple simultaneous staking initiations
+  if (lobby.stakingStatus) {
+    console.log(`⚠️ Staking already in progress for lobby ${lobby.code}, ignoring duplicate call`);
+    return;
+  }
+  
   try {
     const blockchainService = require('../services/blockchainService');
     const User = require('../models/User');
@@ -364,12 +370,39 @@ async collectStakesFromAllPlayers(lobby, socket) {
       return;
     }
 
-    // Set a timeout for staking (60 seconds)
-    lobby.stakingTimeout = setTimeout(() => {
-      this.handleStakingTimeout(lobby);
-    }, 60000);
+    // Clear any existing timeout first
+    if (lobby.stakingTimeout) {
+      clearTimeout(lobby.stakingTimeout);
+      lobby.stakingTimeout = null;
+      console.log(`🧹 Cleared existing timeout for lobby ${lobby.code}`);
+    }
 
-    console.log(`⏰ Staking timeout set for lobby ${lobby.code}, matchId: ${matchId}`);
+    // Set a timeout for staking (60 seconds)
+    const timeoutDuration = 60000; // 60 seconds
+    const timeoutStartTime = Date.now();
+    lobby.stakingTimeoutStartTime = timeoutStartTime; // Store start time for validation
+    
+    lobby.stakingTimeout = setTimeout(() => {
+      const elapsed = Date.now() - timeoutStartTime;
+      console.log(`⏰ Timeout callback fired for lobby ${lobby.code}, elapsed: ${elapsed}ms`);
+      
+      // Validate that enough time has passed (allow 1 second tolerance for timing issues)
+      if (elapsed < timeoutDuration - 1000) {
+        console.error(`❌ Timeout fired too early! Expected ${timeoutDuration}ms, got ${elapsed}ms. Ignoring.`);
+        return;
+      }
+      
+      // Only handle timeout if staking is still in progress
+      if (lobby.stakingStatus && lobby.stakingStatus.playersStaked < lobby.players.length) {
+        this.handleStakingTimeout(lobby);
+      } else {
+        console.log(`ℹ️ Timeout fired but staking already complete or cancelled for lobby ${lobby.code}`);
+      }
+      lobby.stakingTimeout = null; // Clear reference after firing
+      lobby.stakingTimeoutStartTime = null;
+    }, timeoutDuration);
+
+    console.log(`⏰ Staking timeout set for lobby ${lobby.code}, matchId: ${matchId}, duration: ${timeoutDuration}ms, startTime: ${timeoutStartTime}`);
   } catch (error) {
     console.error('Error collecting stakes:', error);
     socket.emit("lobbyError", "Failed to initiate staking process: " + error.message);
@@ -388,12 +421,6 @@ async handlePlayerStake(socket, code, playerId, stakeAmount, transactionHash) {
     if (!lobby.stakingStatus) {
       console.error(`❌ No staking in progress for lobby ${code}`);
       return socket.emit("lobbyError", "No staking in progress");
-    }
-
-    // Check if staking timeout has already passed
-    if (!lobby.stakingTimeout && lobby.stakingStatus.playersStaked < lobby.players.length) {
-      console.error(`❌ Staking period expired for lobby ${code}`);
-      return socket.emit("lobbyError", "Staking period has expired");
     }
 
     const player = lobby.players.find(p => String(p.id) === String(playerId));
@@ -458,7 +485,7 @@ async handlePlayerStake(socket, code, playerId, stakeAmount, transactionHash) {
       stakedPlayer: player.name
     });
 
-    // If Player A just staked (created match), notify Player B to join
+    // If Player A just staked (created match), notify Player B to join and reset timeout
     if (String(playerId) === String(lobby.stakingStatus.playerAddresses[0]?.id) && lobby.stakingStatus.playersStaked === 1) {
       const playerB = lobby.players.find(p => String(p.id) === String(lobby.stakingStatus.playerAddresses[1]?.id));
       
@@ -477,6 +504,39 @@ async handlePlayerStake(socket, code, playerId, stakeAmount, transactionHash) {
         const playerBSocket = this.io.sockets.sockets.get(playerB.socketId);
         
         if (playerBSocket) {
+          // Reset timeout to give Player B a full 60 seconds
+          if (lobby.stakingTimeout) {
+            clearTimeout(lobby.stakingTimeout);
+            lobby.stakingTimeout = null;
+            console.log(`🔄 Resetting timeout for Player B in lobby ${code}`);
+          }
+          
+          const timeoutDuration = 60000; // 60 seconds
+          const timeoutStartTime = Date.now();
+          lobby.stakingTimeoutStartTime = timeoutStartTime;
+          
+          lobby.stakingTimeout = setTimeout(() => {
+            const elapsed = Date.now() - timeoutStartTime;
+            console.log(`⏰ Timeout callback fired for lobby ${code} (Player B), elapsed: ${elapsed}ms`);
+            
+            // Validate that enough time has passed (allow 1 second tolerance for timing issues)
+            if (elapsed < timeoutDuration - 1000) {
+              console.error(`❌ Timeout fired too early! Expected ${timeoutDuration}ms, got ${elapsed}ms. Ignoring.`);
+              return;
+            }
+            
+            // Only handle timeout if staking is still in progress
+            if (lobby.stakingStatus && lobby.stakingStatus.playersStaked < lobby.players.length) {
+              this.handleStakingTimeout(lobby);
+            } else {
+              console.log(`ℹ️ Timeout fired but staking already complete or cancelled for lobby ${code}`);
+            }
+            lobby.stakingTimeout = null;
+            lobby.stakingTimeoutStartTime = null;
+          }, timeoutDuration);
+          
+          console.log(`⏰ Staking timeout reset for Player B in lobby ${code}, duration: ${timeoutDuration}ms, startTime: ${timeoutStartTime}`);
+          
           console.log(`📢 Notifying Player B (${playerB.name}) to stake in lobby ${code}`);
           playerBSocket.emit("stakeRequired", {
             step: "join",
@@ -519,8 +579,11 @@ startGameAfterStaking(lobby) {
   
   // Clear staking timeout
   if (lobby.stakingTimeout) {
+    const elapsed = lobby.stakingTimeoutStartTime ? Date.now() - lobby.stakingTimeoutStartTime : 0;
     clearTimeout(lobby.stakingTimeout);
     lobby.stakingTimeout = null;
+    lobby.stakingTimeoutStartTime = null;
+    console.log(`🧹 Cleared staking timeout for lobby ${lobby.code} (elapsed: ${elapsed}ms)`);
   }
 
   lobby.status = "starting";
@@ -617,8 +680,22 @@ startGameWithoutBlockchain(lobby) {
 handleStakingTimeout(lobby) {
   console.log(`⏰ Staking timeout reached for lobby ${lobby.code}`);
   
+  // Clear the timeout reference (should already be null if called from timeout callback)
+  if (lobby.stakingTimeout) {
+    clearTimeout(lobby.stakingTimeout);
+    lobby.stakingTimeout = null;
+    lobby.stakingTimeoutStartTime = null;
+    console.log(`🧹 Cleared timeout reference in handleStakingTimeout for lobby ${lobby.code}`);
+  }
+  
   if (!lobby.stakingStatus) {
     console.log(`⚠️ No staking status found for lobby ${lobby.code}`);
+    return;
+  }
+  
+  // Check if all players have already staked (race condition check)
+  if (lobby.stakingStatus.playersStaked >= lobby.players.length) {
+    console.log(`✅ All players already staked (${lobby.stakingStatus.playersStaked}/${lobby.players.length}), timeout fired too late`);
     return;
   }
   
@@ -627,6 +704,10 @@ handleStakingTimeout(lobby) {
   
   // Filter out players who haven't staked (compare as strings)
   const unstakedPlayers = lobby.players.filter(p => !stakedPlayerIds.includes(String(p.id)));
+  
+  console.log(`📊 Staking status: ${lobby.stakingStatus.playersStaked}/${lobby.players.length} players staked`);
+  console.log(`📊 Staked players: ${stakedPlayerIds.join(', ')}`);
+  console.log(`📊 Unstaked players: ${unstakedPlayers.map(p => p.name).join(', ')}`);
   
   if (unstakedPlayers.length > 0) {
     console.log(`⚠️ Removing ${unstakedPlayers.length} unstaked players from lobby ${lobby.code}`);
@@ -640,11 +721,11 @@ handleStakingTimeout(lobby) {
     });
   }
 
-  if (lobby.players.length >= 2) {
+  if (lobby.players.length >= 2 && lobby.stakingStatus.playersStaked >= 2) {
     console.log(`✅ ${lobby.players.length} players staked, starting game`);
     this.startGameAfterStaking(lobby);
   } else {
-    console.log(`⚠️ Not enough players staked (${lobby.players.length}). Need at least 2.`);
+    console.log(`⚠️ Not enough players staked (${lobby.stakingStatus.playersStaked}/${lobby.players.length}). Need at least 2.`);
     this.io.to(lobby.code).emit("lobbyError", "Not enough players staked to start the game");
     lobby.status = "waiting";
     // Clear staking status to allow retry

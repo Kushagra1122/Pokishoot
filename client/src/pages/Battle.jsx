@@ -129,51 +129,60 @@ const Battle = () => {
             <Home className="w-5 h-5" strokeWidth={3} />
           </button>
 
-          <h1 className="text-3xl md:text-4xl font-black" style={{
-            fontFamily: 'monospace',
-            color: '#fbbf24',
-            textShadow: '3px 3px 0 #dc2626'
-          }}>
-            BATTLE <span className="text-red-500">ARENA</span>
-          </h1>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="PokeWars" 
+              className="h-10 md:h-12 object-contain"
+            />
+            <h1 className="text-2xl md:text-3xl font-black text-glow" style={{
+              fontFamily: 'monospace',
+              color: '#fbbf24',
+              textShadow: '3px 3px 0 #dc2626, 0 0 20px rgba(251, 191, 36, 0.5)'
+            }}>
+              BATTLE <span className="text-red-500">ARENA</span>
+            </h1>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-100px)] px-6 py-12">
         <div className="w-full max-w-2xl">
-          {/* Subtitle */}
+          {/* Subtitle - Clear Game UI */}
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-3" style={{ fontFamily: 'monospace' }}>
-              CREATE OR JOIN BATTLE
-            </h2>
-            <p className="text-green-400 text-lg" style={{ fontFamily: 'monospace' }}>
-              &gt; ENTER_THE_ARENA.EXE
-            </p>
+            <div className="game-panel border-yellow-400 p-6 mb-6 max-w-2xl mx-auto" style={{ borderColor: '#fbbf24' }}>
+              <h2 className="heading-secondary text-white mb-2" style={{ fontFamily: 'monospace' }}>
+                CREATE OR JOIN BATTLE
+              </h2>
+              <div className="section-divider border-yellow-400"></div>
+              <p className="text-green-400 text-base font-black uppercase tracking-wider" style={{ fontFamily: 'monospace' }}>
+                &gt; ENTER_THE_ARENA.EXE
+              </p>
+            </div>
           </div>
 
           {/* Main Card Container */}
           <div className="space-y-6">
-            {/* Create Lobby Card */}
-            <div className="bg-gray-900 border-4 border-yellow-400 p-8 hover:border-green-400 transition-all duration-300" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
+            {/* Create Lobby Card - Clear Game UI */}
+            <div className="game-panel border-yellow-400 p-8 hover:border-green-400 transition-all duration-300 animate-slide-in" style={{ fontFamily: 'monospace', borderColor: '#fbbf24' }}>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center" style={{
-                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                  boxShadow: '0 4px 0 #166534'
+                <div className="w-14 h-14 bg-green-400/20 border-2 border-green-400 flex items-center justify-center" style={{
+                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
                 }}>
-                  <Plus className="w-7 h-7 text-black" strokeWidth={3} />
+                  <Plus className="w-7 h-7 text-green-400" strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white uppercase">Create Lobby</h3>
-                  <p className="text-yellow-400 text-sm font-black">Host and wait for challengers</p>
+                  <h3 className="heading-tertiary text-white mb-1" style={{ fontFamily: 'monospace' }}>CREATE LOBBY</h3>
+                  <p className="text-yellow-400 text-sm font-black uppercase">Host and wait for challengers</p>
                 </div>
               </div>
 
               <button
                 onClick={handleCreateLobby}
                 disabled={creating || !user}
-                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black border-4 border-green-700 hover:border-green-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
-                style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534' }}
+                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black border-4 border-green-700 hover:border-green-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase game-button"
+                style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534, 0 0 20px rgba(34, 197, 94, 0.4)' }}
               >
                 <Zap className="w-5 h-5" strokeWidth={3} />
                 {creating ? 'Creating...' : 'Create Lobby'}
@@ -187,18 +196,17 @@ const Battle = () => {
               <div className="flex-1 h-1 bg-yellow-400"></div>
             </div>
 
-            {/* Join Lobby Card */}
-            <div className="bg-gray-900 border-4 border-yellow-400 p-8 hover:border-blue-400 transition-all duration-300" style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #92400e' }}>
+            {/* Join Lobby Card - Clear Game UI */}
+            <div className="game-panel border-yellow-400 p-8 hover:border-blue-400 transition-all duration-300 animate-slide-in" style={{ fontFamily: 'monospace', borderColor: '#fbbf24', animationDelay: '0.1s' }}>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center" style={{
-                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                  boxShadow: '0 4px 0 #1e40af'
+                <div className="w-14 h-14 bg-blue-400/20 border-2 border-blue-400 flex items-center justify-center" style={{
+                  clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'
                 }}>
-                  <LogIn className="w-7 h-7 text-black" strokeWidth={3} />
+                  <LogIn className="w-7 h-7 text-blue-400" strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white uppercase">Join Lobby</h3>
-                  <p className="text-yellow-400 text-sm font-black">Enter code to join battle</p>
+                  <h3 className="heading-tertiary text-white mb-1" style={{ fontFamily: 'monospace' }}>JOIN LOBBY</h3>
+                  <p className="text-yellow-400 text-sm font-black uppercase">Enter code to join battle</p>
                 </div>
               </div>
 
@@ -208,15 +216,15 @@ const Battle = () => {
                   value={lobbyCode}
                   onChange={(e) => setLobbyCode(e.target.value.toUpperCase())}
                   placeholder="ENTER LOBBY CODE"
-                  className="w-full px-6 py-4 bg-gray-950 border-4 border-gray-700 text-white font-black placeholder-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-all duration-300 uppercase"
-                  style={{ fontFamily: 'monospace' }}
+                  className="w-full px-6 py-4 bg-gray-950 border-4 border-gray-700 text-white font-black placeholder-yellow-400/50 focus:outline-none focus:border-yellow-400 transition-all duration-300 uppercase scan-line input-enhanced"
+                  style={{ fontFamily: 'monospace', boxShadow: '0 6px 0 #374151, 0 0 15px rgba(0, 0, 0, 0.3)' }}
                 />
 
                 <button
                   onClick={handleJoinLobby}
                   disabled={joining || !user}
-                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black border-4 border-blue-700 hover:border-blue-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
-                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #1e40af' }}
+                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black border-4 border-blue-700 hover:border-blue-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase game-button"
+                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #1e40af, 0 0 20px rgba(59, 130, 246, 0.4)' }}
                 >
                   <Zap className="w-5 h-5" strokeWidth={3} />
                   {joining ? 'Joining...' : 'Join Lobby'}

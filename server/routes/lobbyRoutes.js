@@ -3,15 +3,15 @@ const router = express.Router()
 const lobbyController = require('../controllers/lobbyController')
 
 // Create a lobby
-router.post('/lobby', lobbyController.create)
+router.post('/', lobbyController.create)
 
 // Validate/join a lobby
-router.get('/lobby/:code', lobbyController.validate)
+router.get('/:code', lobbyController.validate)
 
 // Get lobby details
-router.get('/lobby/:code/details', lobbyController.getLobby)
+router.get('/:code/details', lobbyController.getLobby)
 
 // Delete a lobby
-router.delete('/lobby/:code', lobbyController.deleteLobby)
+router.delete('/:code', lobbyController.deleteLobby)
 
 module.exports = router

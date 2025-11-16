@@ -11,7 +11,11 @@ const UserSchema = new mongoose.Schema({
   },
   passwordHash: {
     type: String,
-    required: true,
+    required: function() {
+      // Only required if walletAddress is not set (traditional auth)
+      return !this.walletAddress;
+    },
+    default: '',
   },
   pokemon: [
     {
@@ -24,6 +28,12 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         default: 1,
         required: true,
+      },
+      stats: {
+        shootRange: { type: Number, default: null },
+        shootPerMin: { type: Number, default: null },
+        hitPoints: { type: Number, default: null },
+        speed: { type: Number, default: null },
       },
       nftTokenId: {
         type: String,
@@ -122,6 +132,15 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+// Validation: Either passwordHash or walletAddress must be set
+UserSchema.pre('validate', function(next) {
+  if (!this.passwordHash && !this.walletAddress) {
+    this.invalidate('passwordHash', 'Either password or wallet address is required');
+    this.invalidate('walletAddress', 'Either password or wallet address is required');
+  }
+  next();
 });
 
 // Remove sensitive fields when converting to JSON

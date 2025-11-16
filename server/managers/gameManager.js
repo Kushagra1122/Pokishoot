@@ -602,9 +602,14 @@ class GameManager {
       return;
     }
 
-    const dbPlayerAAddress = userA.walletAddress.toLowerCase();
-    const dbPlayerBAddress = userB.walletAddress.toLowerCase();
-    const dbWinnerAddress = winnerUser.walletAddress.toLowerCase();
+    // Normalize addresses: lowercase for EVM, keep as-is for Substrate (case-sensitive)
+    const normalizeAddress = (address, walletType) => {
+      return walletType === 'substrate' ? address : address.toLowerCase();
+    };
+    
+    const dbPlayerAAddress = normalizeAddress(userA.walletAddress, userA.walletType || 'evm');
+    const dbPlayerBAddress = normalizeAddress(userB.walletAddress, userB.walletType || 'evm');
+    const dbWinnerAddress = normalizeAddress(winnerUser.walletAddress, winnerUser.walletType || 'evm');
 
     // Determine winner address from database
     let winnerAddress;

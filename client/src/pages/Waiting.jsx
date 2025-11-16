@@ -562,7 +562,7 @@ const Waiting = () => {
                     socket.emit('startGame', { code });
                   }}
                   className="w-full mt-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black border-4 border-green-700 hover:border-green-400 transition-all duration-300 flex items-center justify-center gap-3 uppercase"
-                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534' }}
+                  style={{ fontFamily: 'monospace', boxShadow: '0 8px 0 #166534', textShadow: 'none', filter: 'none' }}
                 >
                   <Play className="w-5 h-5" strokeWidth={3} />
                   Start Battle

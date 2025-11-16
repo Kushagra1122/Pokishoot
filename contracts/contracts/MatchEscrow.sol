@@ -2,8 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -66,7 +65,7 @@ contract MatchEscrow is Ownable, ReentrancyGuard {
         uint256 totalPoints
     );
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable() {}
 
     /**
      * @dev Create a new match with initial stake
@@ -169,7 +168,7 @@ contract MatchEscrow is Ownable, ReentrancyGuard {
                 address(this)
             )
         );
-        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        bytes32 ethSignedMessageHash = ECDSA.toEthSignedMessageHash(messageHash);
 
         // Verify signatures from server
         address signerA = ethSignedMessageHash.recover(sigA);

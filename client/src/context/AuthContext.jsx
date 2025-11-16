@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     if (token) {
       localStorage.setItem('token', token)
       axios
-        .get(`${API_BASE}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .get(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => {
           const fetchedUser = res.data.user
           setUser(fetchedUser)
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     if (!token) return null
     try {
-      const res = await axios.get(`${API_BASE}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+      const res = await axios.get(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       const updatedUser = res.data.user
       setUser(updatedUser)
       // If user has Pokémon but selectedPokemon is null or no longer valid → default to first
@@ -75,16 +75,31 @@ export function AuthProvider({ children }) {
 
   // ✅ Signup
   const signup = async ({ name, password }) => {
-    const res = await axios.post(`${API_BASE}/api/signup`, { name, password })
+    const res = await axios.post(`${API_BASE}/api/auth/signup`, { name, password })
     setToken(res.data.token)
     setUser(res.data.user)
     setSelectedPokemon(null)
     return res.data
   }
 
-  // ✅ Login
-  const login = async ({ name, password }) => {
-    const res = await axios.post(`${API_BASE}/api/login`, { name, password })
+  // ✅ Login (supports both traditional and wallet login)
+  const login = async ({ name, password, token, user }) => {
+    // If token and user provided (wallet login), use them directly
+    if (token && user) {
+      setToken(token)
+      setUser(user)
+      
+      // Auto-select first Pokémon if available
+      const first = user?.pokemon?.[0]
+      setSelectedPokemon(
+        first ? { ...first.pokemonId, level: first.level, _id: first._id } : null
+      )
+      
+      return { token, user }
+    }
+    
+    // Traditional login (deprecated - kept for backward compatibility)
+    const res = await axios.post(`${API_BASE}/api/auth/login`, { name, password })
     const loggedUser = res.data.user
 
     setToken(res.data.token)
